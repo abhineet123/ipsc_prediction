@@ -1,0 +1,41 @@
+Evaluate annotation type *bbox*
+DONE (t=1.18s).
+Accumulating evaluation results...
+DONE (t=0.14s).
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.680
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.800
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.750
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.000
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.738
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.680
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.741
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.741
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.741
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.000
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.768
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.742
+
+Evaluating segm...
+Loading and preparing results...
+DONE (t=0.03s)
+creating index...
+index created!
+Running per image evaluation...
+Evaluate annotation type *segm*
+DONE (t=1.60s).
+Accumulating evaluation results...
+DONE (t=0.14s).
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.658
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.798
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.756
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.000
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.736
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.658
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.719
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.719
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.719
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.000
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.750
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.720
+OrderedDict([('bbox_mAP', 0.68), ('bbox_mAP_50', 0.8), ('bbox_mAP_75', 0.75), ('bbox_mAP_s', 0.0), ('bbox_mAP_m', 0.738), ('bbox_mAP_l', 0.68), ('bbox_mAP_copypaste', '0.680 0.800 0.750 0.000 0.738 0.680'), ('segm_mAP', 0.658), ('segm_mAP_50', 0.798), ('segm_mAP_75', 0.756), ('segm_mAP_s', 0.0), ('segm_mAP_m', 0.736), ('segm_mAP_l', 0.658), ('segm_mAP_copypaste', '0.658 0.798 0.756 0.000 0.736 0.658')])
+(ipsc_seg) root@orca:~/ipsc_segmentation/swin_detection#

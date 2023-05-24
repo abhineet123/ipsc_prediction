@@ -1,0 +1,15 @@
+# g2_0_15       @ seqformer/ext_reorg_roi_g2_54_126-->coco_to_xml
+## @ grs:9.0
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/seqformer-ipsc-ext_reorg_roi_g2_54_126/inference_model_0495999_g2_0_15/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=1
+## @ grs:9.1
+__-max_length-1-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/seqformer-ipsc-ext_reorg_roi_g2_54_126/inference_model_0495999_g2_0_15-max_length-1/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-1.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=1
+## @ grs:9.2
+__-max_length-2-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/seqformer-ipsc-ext_reorg_roi_g2_54_126/inference_model_0495999_g2_0_15-max_length-2/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-2.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=1
+## @ grs:9.3
+__-max_length-4-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/seqformer-ipsc-ext_reorg_roi_g2_54_126/inference_model_0495999_g2_0_15-max_length-4/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-4.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=1
+## @ grs:9.4
+__-max_length-8-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/seqformer-ipsc-ext_reorg_roi_g2_54_126/inference_model_0495999_g2_0_15-max_length-8/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-8.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=1 load_coco=0

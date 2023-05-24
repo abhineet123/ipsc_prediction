@@ -1,0 +1,21 @@
+DATA:
+  DATASET: ipsc2class
+  IMG_SIZE: 256
+  NUM_WORKERS: 2
+MODEL:
+  NUM_CLASSES: 2
+  TYPE: swinv2
+  NAME: swinv2_base_patch4_window16_256
+  DROP_PATH_RATE: 0.5
+  SWINV2:
+    EMBED_DIM: 128
+    DEPTHS: [ 2, 2, 18, 2 ]
+    NUM_HEADS: [ 4, 8, 16, 32 ]
+    WINDOW_SIZE: 16
+TRAIN:
+  EPOCHS: 1000
+  WARMUP_EPOCHS: 5
+  WEIGHT_DECAY: 0.05
+  BASE_LR: 1.25e-4 # 4096 batch-size
+  WARMUP_LR: 1.25e-7
+  MIN_LR: 1.25e-6

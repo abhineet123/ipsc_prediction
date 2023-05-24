@@ -1,0 +1,21 @@
+### swi       @ ext_reorg_roi_16_53/ipsc-->eval_det
+## @ grs:18.0
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/swi/ipsc_2_class_ext_reorg_roi_g2_16_53-no_validate/g2_0_15/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-swi gt_pkl=g2_0_15.pkl iw=0 nms_thresh=0.1 n_proc=12 save_vis=1 save_classes=ipsc
+
+### cvnxt-large       @ ext_reorg_roi_16_53/ipsc-->eval_det
+## @ grs:18.1
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/swi/ipsc_2_class_ext_reorg_roi_g2_16_53-convnext_large_in22k/g2_0_15/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-cvnxt-large gt_pkl=g2_0_15.pkl iw=0 nms_thresh=0.9 n_proc=12 save_vis=1 save_classes=ipsc
+
+#### probs       @ idol-inc/ext_reorg_roi_16_53/ipsc-->eval_det
+## @ grs:18.2
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/idol-ipsc-ext_reorg_roi_g2_16_53/inference_model_0254999_incremental_probs/csv_incremental gt_csv_name=annotations_0_15.csv save_suffix=inv-idol-inc-probs gt_pkl=g2_0_15.pkl nms_thresh=0.1 n_proc=12 save_vis=1 save_classes=ipsc
+
+### seq-inc       @ ext_reorg_roi_16_53/ipsc-->eval_det
+## @ grs:18.3
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/seqformer-ipsc-ext_reorg_roi_g2_16_53/inference_model_0241999_incremental/csv_incremental gt_csv_name=annotations_0_15.csv save_suffix=inv-seq-inc gt_pkl=g2_0_15.pkl nms_thresh=0.1 n_proc=12 save_vis=1 save_classes=ipsc
+
+#### 0329999       @ vita-inc/ext_reorg_roi_16_53/ipsc-->eval_det
+## @ grs:18.0
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vita/vita-ipsc-ext_reorg_roi_g2_16_53_swin/inference_model_0329999_incremental/csv_incremental gt_csv_name=annotations_0_15.csv save_suffix=inv-vita-inc gt_pkl=g2_0_15.pkl iw=0 nms_thresh=0.1 n_proc=12 save_vis=1 save_classes=ipsc
+
+

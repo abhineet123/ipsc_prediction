@@ -1,0 +1,81 @@
+### 0329999       @ vita/ext_reorg_roi_g2_16_53-->coco_to_xml
+## @ grs:15.0
+cd ~/animal_detection_private/human
+ac
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vita/vita-ipsc-ext_reorg_roi_g2_16_53_swin/inference_model_0329999/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-1-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vita/vita-ipsc-ext_reorg_roi_g2_16_53_swin/inference_model_0329999_max_length-1/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-1.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-2-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vita/vita-ipsc-ext_reorg_roi_g2_16_53_swin/inference_model_0329999_max_length-2/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-2.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-4-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vita/vita-ipsc-ext_reorg_roi_g2_16_53_swin/inference_model_0329999_max_length-4/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-4.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-8-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vita/vita-ipsc-ext_reorg_roi_g2_16_53_swin/inference_model_0329999_max_length-8/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-8.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=2
+
+#### 0329999       @ vita/ext_reorg_roi_16_53/ipsc-->eval_det
+cd ~/animal_detection_private/eval
+
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vita/vita-ipsc-ext_reorg_roi_g2_16_53_swin/inference_model_0329999/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-vita gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-1-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vita/vita-ipsc-ext_reorg_roi_g2_16_53_swin/inference_model_0329999_max_length-1/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-vita-max_length-1 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-2-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vita/vita-ipsc-ext_reorg_roi_g2_16_53_swin/inference_model_0329999_max_length-2/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-vita-max_length-2 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-4-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vita/vita-ipsc-ext_reorg_roi_g2_16_53_swin/inference_model_0329999_max_length-4/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-vita-max_length-4 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-8-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vita/vita-ipsc-ext_reorg_roi_g2_16_53_swin/inference_model_0329999_max_length-8/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-vita-max_length-8 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=2
+
+## seq       @ ext_reorg_roi_g2_16_53-->coco_to_xml
+## @ grs:15.1
+cd ~/animal_detection_private/human
+ac
+
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/seqformer-ipsc-ext_reorg_roi_g2_16_53/inference_model_0241999/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-1-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/seqformer-ipsc-ext_reorg_roi_g2_16_53/inference_model_0241999_max_length-1/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-1.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=12
+__-max_length-2-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/seqformer-ipsc-ext_reorg_roi_g2_16_53/inference_model_0241999_max_length-2/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-2.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=12
+__-max_length-4-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/seqformer-ipsc-ext_reorg_roi_g2_16_53/inference_model_0241999_max_length-4/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-4.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=12
+__-max_length-8-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/seqformer-ipsc-ext_reorg_roi_g2_16_53/inference_model_0241999_max_length-8/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-8.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=12
+
+### seq       @ ext_reorg_roi_16_53/ipsc-->eval_det
+cd ~/animal_detection_private/eval
+
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/seqformer-ipsc-ext_reorg_roi_g2_16_53/inference_model_0241999/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-seq gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=12 
+__-max_length-1-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/seqformer-ipsc-ext_reorg_roi_g2_16_53/inference_model_0241999_max_length-1/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-seq-max_length-1 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=12 
+__-max_length-2-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/seqformer-ipsc-ext_reorg_roi_g2_16_53/inference_model_0241999_max_length-2/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-seq-max_length-2 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=12 
+__-max_length-4-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/seqformer-ipsc-ext_reorg_roi_g2_16_53/inference_model_0241999_max_length-4/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-seq-max_length-4 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=12 
+__-max_length-8-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/seqformer-ipsc-ext_reorg_roi_g2_16_53/inference_model_0241999_max_length-8/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-seq-max_length-8 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=12 
+
+## idol       @ ext_reorg_roi_g2_16_53-->coco_to_xml
+## @ grs:15.2
+cd ~/animal_detection_private/human
+ac
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/idol-ipsc-ext_reorg_roi_g2_16_53/inference_model_0254999/json_results  gt_json=ipsc-ext_reorg_roi_g2_0_15.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 fix_category_id=1 save=0 nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-1-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/idol-ipsc-ext_reorg_roi_g2_16_53/inference_model_0254999_max_length-1/json_results  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-1.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 fix_category_id=1 save=0 nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-2-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/idol-ipsc-ext_reorg_roi_g2_16_53/inference_model_0254999_max_length-2/json_results  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-2.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 fix_category_id=1 save=0 nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-4-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/idol-ipsc-ext_reorg_roi_g2_16_53/inference_model_0254999_max_length-4/json_results  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-4.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 fix_category_id=1 save=0 nms_thresh=0:0.9:0.1 n_proc=2
+__-max_length-8-__
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/idol-ipsc-ext_reorg_roi_g2_16_53/inference_model_0254999_max_length-8/json_results  gt_json=ipsc-ext_reorg_roi_g2_0_15-max_length-8.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 fix_category_id=1 save=0 nms_thresh=0:0.9:0.1 n_proc=2
+
+### idol       @ ext_reorg_roi_16_53/ipsc-->eval_det
+cd ~/animal_detection_private/eval
+
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/idol-ipsc-ext_reorg_roi_g2_16_53/inference_model_0254999/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-idol gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=2 
+__-max_length-1-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/idol-ipsc-ext_reorg_roi_g2_16_53/inference_model_0254999_max_length-1/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-idol-max_length-1 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=2 
+__-max_length-2-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/idol-ipsc-ext_reorg_roi_g2_16_53/inference_model_0254999_max_length-2/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-idol-max_length-2 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=2 
+__-max_length-4-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/idol-ipsc-ext_reorg_roi_g2_16_53/inference_model_0254999_max_length-4/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-idol-max_length-4 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=12 
+__-max_length-8-__
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/idol-ipsc-ext_reorg_roi_g2_16_53/inference_model_0254999_max_length-8/csv gt_csv_name=annotations_0_15.csv save_suffix=inv-idol-max_length-8 gt_pkl=g2_0_15.pkl nms_thresh=0:0.9:0.1 n_proc=2 

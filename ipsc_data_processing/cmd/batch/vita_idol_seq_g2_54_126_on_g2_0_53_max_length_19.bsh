@@ -1,0 +1,40 @@
+# vita
+## @ grs:15.0
+cd ~/vita
+vita
+CUDA_VISIBLE_DEVICES=0 python train_net_vita.py --config-file configs/ytvis19/vita-ipsc-ext_reorg_roi_g2_54_126-vita_SWIN_bs8.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/vita-ipsc-ext_reorg_roi_g2_54_126_swin/model_0194999.pth TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_53-max_length-19 OUT_SUFFIX max_length-19
+## @ grs:15.0
+cd ~/animal_detection_private/human
+ac
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vita/vita-ipsc-ext_reorg_roi_g2_54_126_swin/inference_model_0194999_max_length-19/results.json  gt_json=ipsc-ext_reorg_roi_g2_0_53-max_length-19.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=12
+## @ grs:15.0
+cd ~/animal_detection_private/mAP
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vita/vita-ipsc-ext_reorg_roi_g2_54_126_swin/inference_model_0194999_max_length-19/csv gt_csv_name=annotations_0_53.csv save_suffix=full-vita-max_length-19 gt_pkl=g2_0_53.pkl show_vis=0 show_tp=1 save_vis=0 nms_thresh=0:0.9:0.1 n_proc=12
+
+# idol
+## @ grs:15.1
+cd ~/vnext
+vnxt
+CUDA_VISIBLE_DEVICES=1 python3 projects/IDOL/train_net.py --config-file projects/IDOL/configs/idol-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/idol-ipsc-ext_reorg_roi_g2_54_126/model_0596999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_53-max_length-19 OUT_SUFFIX max_length-19
+## @ grs:15.1
+cd ~/animal_detection_private/human
+ac
+python3  coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/idol-ipsc-ext_reorg_roi_g2_54_126/inference_model_0596999_max_length-19/json_results  gt_json=ipsc-ext_reorg_roi_g2_0_53-max_length-19.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 fix_category_id=1 save=0 nms_thresh=0:0.9:0.1 n_proc=12
+## @ grs:15.1
+cd ~/animal_detection_private/mAP
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/idol-ipsc-ext_reorg_roi_g2_54_126/inference_model_0596999_max_length-19/csv gt_csv_name=annotations_0_53.csv save_suffix=full-idol-max_length-19 gt_pkl=g2_0_53.pkl nms_thresh=0:0.9:0.1 n_proc=12
+
+# seq
+## @ grs:15.1
+cd ~/vnext
+vnxt
+CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_53-max_length-19 OUT_SUFFIX max_length-19
+## @ grs:15.1
+cd ~/animal_detection_private/human
+ac
+python3 coco_to_xml.py root_dir=/data/ipsc/well3/all_frames_roi/ytvis19 json=vnxt/seqformer-ipsc-ext_reorg_roi_g2_54_126/inference_model_0495999_max_length-19/results.json gt_json=ipsc-ext_reorg_roi_g2_0_53-max_length-19.json class_names_path=lists/classes/predefined_classes_ipsc_2_class.txt ytvis=1 save=0 nms_thresh=0:0.9:0.1 n_proc=12
+## @ grs:15.1
+cd ~/animal_detection_private/mAP
+python3 eval_det.py cfg=ipsc_2_class img_paths=lists/ext_reorg_roi.txt det_paths=log/vnxt/seqformer-ipsc-ext_reorg_roi_g2_54_126/inference_model_0495999_max_length-19/csv gt_csv_name=annotations_0_15.csv save_suffix=full-seq-g2_0_53-max_length-19 gt_pkl=g2_0_53.pkl show_vis=0 show_tp=1 save_vis=0 nms_thresh=0:0.9:0.1 n_proc=12
+
+

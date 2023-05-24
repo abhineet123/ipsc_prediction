@@ -1,0 +1,22 @@
+left_button+drag / ctrl+shift+drag	draw mask boundary
+shift+left_button+drag	delete mask within the given radius of the pointer
+shift+drag	show the region within which mask would be deleted when left_button is pressed
+ctrl+left_button	add a single point to the mask
+ctrl+drag	show where and how next point would be added if left_button is clicked
+alt+left_button+drag / arrow keys	move the entire mask around
+ctrl+right_button / a	run augmentation without background selection dialogue (unless necessary)
+alt+right_button / A	run augmentation with background selection dialogue
+ctrl+shift+right_button  / c	clean mask points to generate a single contour
+shift+right_button	delete all mask points
+right_button / b	start paint mode
+middle_button / enter	exit, clean mask points to generate a single contour and apply changes including bounding box
+alt+middle_button / ctrl+enter	exit, clean mask points to generate a single contour  and apply changes excluding bounding box
+shift+middle_button / q	exit and discard changes
+ctrl+shift+middle_button / esc	exit and apply changes
+wheel	change the drawing window size
+shift+wheel / +, - / >, <	change the mask deletion radius
+ctrl+shift+wheel	change the magnified patch area without changing the magnified window size
+ctrl+alt+shift+wheel	change the magnified window size without changing the magnified patch area
+m	toggle the magnified window visibility
+
+password

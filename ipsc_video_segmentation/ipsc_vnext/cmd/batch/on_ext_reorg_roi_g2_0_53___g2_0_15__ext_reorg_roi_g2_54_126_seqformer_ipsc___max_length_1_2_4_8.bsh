@@ -1,0 +1,28 @@
+# on-ext_reorg_roi_g2_0_53       @ ext_reorg_roi_g2_54_126/seqformer-ipsc-->vnext
+## @ grs:13.0
+__max_length-1-__
+CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_53-max_length-1 OUT_SUFFIX max_length-1
+## @ grs:13.0
+__max_length-2-__
+CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_53-max_length-2 OUT_SUFFIX max_length-2
+## @ grs:13.0
+__max_length-4-__
+CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_53-max_length-4 OUT_SUFFIX max_length-4
+## @ grs:13.0
+__max_length-8-__
+CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_53-max_length-8 OUT_SUFFIX max_length-8
+
+
+# on-ext_reorg_roi_g2_0_15       @ ext_reorg_roi_g2_54_126/seqformer-ipsc-->vnext
+## @ grs:13.1
+__max_length-1-__
+CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15-max_length-1 OUT_SUFFIX g2_0_15-max_length-1
+## @ grs:13.1
+__max_length-2-__
+CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15-max_length-2 OUT_SUFFIX g2_0_15-max_length-2
+## @ grs:13.1
+__max_length-4-__
+CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15-max_length-4 OUT_SUFFIX g2_0_15-max_length-4
+## @ grs:13.1
+__max_length-8-__
+CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15-max_length-8 OUT_SUFFIX g2_0_15-max_length-8

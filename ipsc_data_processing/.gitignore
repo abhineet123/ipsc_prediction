@@ -1,0 +1,10 @@
+log/
+.cache/
+__pycache__/
+.idea/
+*.zip
+*.model
+gitu.sh
+gitu.bat
+
+
