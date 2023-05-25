@@ -3,8 +3,8 @@ This repository contains the code for the paper: [Towards Early Prediction of Hu
 The 8 models reported in the paper are located as follows:    
 - classification    
     + XGB: [ipsc_data_processing/eval_cls.py](ipsc_data_processing/eval_cls.py)    
-    + SWC: [ipsc_classification/swin](ipsc_data_processing/swin)    
-    + CNC: [ipsc_classification/convnext](ipsc_data_processing/convnext)    
+    + SWC: [ipsc_classification/swin](ipsc_classification/swin)    
+    + CNC: [ipsc_classification/convnext](ipsc_classification/convnext)    
 - static segmentation    
     + SWD: [ipsc_static_segmentation/swin_detection](ipsc_static_segmentation/swin_detection)    
     + CND: [ipsc_static_segmentation/swin_detection](ipsc_static_segmentation/swin_detection)    
