@@ -2,20 +2,21 @@ This repository contains the code for the paper: [Towards Early Prediction of Hu
 
 The 8 models reported in the paper are located as follows:    
 - classification    
-    + XGB: [ipsc_data_processing/eval_cls.py](ipsc_data_processing/eval_cls.py)    
-    + SWC: [ipsc_classification/swin](ipsc_classification/swin)    
-    + CNC: [ipsc_classification/convnext](ipsc_classification/convnext)    
+    + **XGB**: [ipsc_data_processing/eval_cls.py](ipsc_data_processing/eval_cls.py)    
+    + **SWC**: [ipsc_classification/swin](ipsc_classification/swin)    
+    + **CNC**: [ipsc_classification/convnext](ipsc_classification/convnext)    
 - static segmentation    
-    + SWD: [ipsc_static_segmentation/swin_detection](ipsc_static_segmentation/swin_detection)    
-    + CND: [ipsc_static_segmentation/swin_detection](ipsc_static_segmentation/swin_detection)    
+    + **SWD**: [ipsc_static_segmentation/swin_detection](ipsc_static_segmentation/swin_detection)    
+    + **CND**: [ipsc_static_segmentation/swin_detection](ipsc_static_segmentation/swin_detection)    
 - video segmentation    
-    + IDOL: [ipsc_video_segmentation/ipsc_vnext](ipsc_video_segmentation/ipsc_vnext)    
-    + SEQ: [ipsc_video_segmentation/ipsc_vnext](ipsc_video_segmentation/ipsc_vnext)    
-    + VITA: [ipsc_video_segmentation/ipsc_vita](ipsc_video_segmentation/ipsc_vita)    
+    + **IDOL**: [ipsc_video_segmentation/ipsc_vnext](ipsc_video_segmentation/ipsc_vnext)    
+    + **SEQ**: [ipsc_video_segmentation/ipsc_vnext](ipsc_video_segmentation/ipsc_vnext)    
+    + **VITA**: [ipsc_video_segmentation/ipsc_vita](ipsc_video_segmentation/ipsc_vita)    
 
 The Swin transformer semantic segmentation model not reported in the paper is available in [ipsc_static_segmentation/swin_semantic](ipsc_static_segmentation/swin_semantic)
 
 Each of the above folders have a subfolder named ```cmd``` containing markdown files with hierarchically organized list of commands to reproduce any of the results reported in the paper.
+- for example, the commands for **SWD** are in [swin_det.md](ipsc_static_segmentation/swin_detection/cmd/swin_det.md) and [swin_det_setup.md](ipsc_static_segmentation/swin_detection/cmd/swin_det_setup.md) in [ipsc_static_segmentation/swin_detection/cmd](ipsc_static_segmentation/swin_detection/cmd)
 
 Data can be downloaded from here:    
 - [ROI images and labels](https://drive.google.com/file/d/18NCCFAVKFlB7DCfa8Cpo92Sd4v7U6FB7/view?usp=sharing)    
