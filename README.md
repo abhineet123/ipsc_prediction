@@ -25,7 +25,7 @@ Trained models can be downloaded from [here](https://drive.google.com/drive/fold
 - both early-stage and late-stage trained models are available here    
 - the zip file for any model should be extracted in its source directory while maintaining the folder structure inside the zip file    
     + for example, the models for IDOL should be extracted inside [    ipsc_video_segmentation/ipsc_vnext](ipsc_video_segmentation/ipsc_vnext)    
-    + this would extract the pth checkpoint files into a subfolder named ```log/idol-ipsc-ext_reorg_roi_g2_16_53``` and ```log/idol-ipsc-ext_reorg_roi_g2_54_126``` for the early and late-stage models respectively    
+    + this would extract the ```.pth``` checkpoint files into a subfolder named ```log/idol-ipsc-ext_reorg_roi_g2_16_53``` and ```log/idol-ipsc-ext_reorg_roi_g2_54_126``` for the early and late-stage models respectively    
 
 
 
