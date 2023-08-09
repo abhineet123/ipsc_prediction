@@ -8,8 +8,12 @@ class Settings(object):
             # Be default, the home will be in the same folder as labelImg
             home = os.path.expanduser(".")
             self.path = os.path.join(home, '.labelImgSettings.pkl')
+
         else:
             self.path = path
+
+        self.path = os.path.abspath(self.path)
+
         self.data = {}
 
     def __setitem__(self, key, value):

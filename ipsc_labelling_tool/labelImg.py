@@ -221,7 +221,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.show_gates_bool = True
 
         self.port = 3000
-        # self.start_server_thread()
+        self.start_server_thread()
         self.add_bboxes_threads = []
         self.get_bboxes_threads = []
         self.curr_frames_list = []
@@ -436,7 +436,11 @@ class MainWindow(QMainWindow, WindowMixin):
         self.dock.setFeatures(self.dock.features() ^ self.dockFeatures)
 
         self.settings = Settings()
-        self.settings.load()
+        try:
+            self.settings.load()
+        except BaseException as e:
+            print(f'failed to load settings from {self.settings.path}: {e}')
+
         settings = self.settings
 
         self.roi = settings.get(SETTING_ROI)
@@ -3018,43 +3022,38 @@ class MainWindow(QMainWindow, WindowMixin):
             if self.roi is not None:
                 frames_reader.setROI(self.roi)
 
-            trackig_thread = Process(target=Server.patch_tracking, args=(self.server_params,
-                                                                         request,
-                                                                         frames_reader,
-                                                                         self.logger))
+            tracking_thread = Process(target=Server.patch_tracking,
+                                      args=(self.server_params,
+                                            request,
+                                            frames_reader,
+                                            self.logger))
 
             # from threading import Thread
-            # trackig_thread = Thread(target=self.server.patchTracking, args=(request,))
-            trackig_thread.start()
+            # tracking_thread = Thread(target=self.server.patchTracking, args=(request,))
+            tracking_thread.start()
 
         elif self.params.tracking_mode == 1:
 
-            base_cmd = '{} tracking/Server.py'.format(self.params.py_exe)
+            base_cmd = f'{self.params.py_exe} tracking/Server.py'
 
-            init_params = 'mode=-1 ' \
-                          'init.path={} ' \
-                          'init.frame_number={} ' \
-                          'init.bbox={},{},{},{} ' \
-                          'init.label={} ' \
-                          'init.id_number={} ' \
-                          'init.bbox_source={} ' \
-                          'init.num_frames={} ' \
-                          'init.port={} ' \
-                          ''.format(
-                self.frames_reader.get_path().replace(os.sep, "/"),
-                frame_number,
-                bbox['xmin'], bbox['ymin'], bbox['xmax'], bbox['ymax'],
-                label,
-                id_number,
-                bbox_source,
-                num_frames,
-                self.port,
-            )
+            init_path = self.frames_reader.get_path().replace(os.sep, "/")
+            xmin, ymin, xmax, ymax = bbox["xmin"], bbox['ymin'], bbox['xmax'], bbox['ymax']
+
+            init_params = f'mode=-1 ' \
+                          f'init.path={init_path} ' \
+                          f'init.frame_number={frame_number} ' \
+                          f'init.bbox={xmin},{ymin},{xmax},{ymax} ' \
+                          f'init.label={label} ' \
+                          f'init.id_number={id_number} ' \
+                          f'init.bbox_source={bbox_source} ' \
+                          f'init.num_frames={num_frames} ' \
+                          f'init.port={self.port} '
+
             if self.roi is not None:
-                init_params = '{} init.roi={},{},{},{}'.format(
-                    init_params, self.roi['xmin'], self.roi['ymin'], self.roi['xmax'], self.roi['ymax'])
+                roi_xmin, roi_ymin, roi_xmax, roi_ymax = self.roi['xmin'], self.roi['ymin'], self.roi['xmax'], self.roi['ymax']
+                init_params = f'{init_params} init.roi={roi_xmin},{roi_ymin},{roi_xmax},{roi_ymax}'
 
-            _cmd = '{} {}'.format(base_cmd, init_params)
+            _cmd = f'{base_cmd} {init_params}'
 
             args = shlex.split(_cmd)
 
