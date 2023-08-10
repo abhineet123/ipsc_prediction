@@ -1702,7 +1702,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
             for _id in range(n_shapes):
                 shape = shapes[_id]
-                label, points, _, _, difficult, bbox_source, id_number, score, _, _ = shape
+                label, points, _, _, difficult, bbox_source, id_number, score, _, _, _, _ = shape
 
                 bndbox = LabelFile.convertPoints2BndBox(points, label)
 
@@ -1876,7 +1876,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
                 new_mask_img = cv2.imread(mask_path)
 
-                label, points, _, _, difficult, bbox_source, id_number, score, mask, mask_img = shape
+                label, points, _, _, difficult, bbox_source, id_number, score, mask, mask_img, _, _ = shape
 
                 if mask is not None or mask_img is not None:
                     print('\n{} :: overwriting existing mask for object {}'.format(
@@ -2095,7 +2095,8 @@ class MainWindow(QMainWindow, WindowMixin):
         print('Done reading previous frame shapes in {} secs'.format(time.time() - start_t))
 
         id_to_shapes = {}
-        for label, points, line_color, fill_color, difficult, bbox_source, id_number, score, mask, _ in prev_shapes:
+        for ps in prev_shapes:
+            label, points, line_color, fill_color, difficult, bbox_source, id_number, score, mask, _, _, _ = ps
             if id_number <= 0:
                 continue
             id_to_shapes[id_number] = (points, mask)
@@ -2705,8 +2706,9 @@ class MainWindow(QMainWindow, WindowMixin):
                     shapes = reader.getShapes()
                     filename = reader.filename
                     writer = PascalVocWriter(folder_name, filename, imageShape)
-                    for label, points, line_color, fill_color, difficult, bbox_source, id_number, score, mask, \
-                        mask_img in shapes:
+                    for shape in shapes:
+                        label, points, line_color, fill_color, difficult, bbox_source, \
+                        id_number, score, mask, mask_img = shape[:10]
                         # box location w.r.t. the new ROI
                         xmin = points[0][0] - rel_min_point[0]
                         xmax = points[1][0] - rel_min_point[0]
@@ -3040,17 +3042,18 @@ class MainWindow(QMainWindow, WindowMixin):
             xmin, ymin, xmax, ymax = bbox["xmin"], bbox['ymin'], bbox['xmax'], bbox['ymax']
 
             init_params = f'mode=-1 ' \
-                          f'init.path={init_path} ' \
-                          f'init.frame_number={frame_number} ' \
-                          f'init.bbox={xmin},{ymin},{xmax},{ymax} ' \
-                          f'init.label={label} ' \
-                          f'init.id_number={id_number} ' \
-                          f'init.bbox_source={bbox_source} ' \
-                          f'init.num_frames={num_frames} ' \
-                          f'init.port={self.port} '
+                f'init.path={init_path} ' \
+                f'init.frame_number={frame_number} ' \
+                f'init.bbox={xmin},{ymin},{xmax},{ymax} ' \
+                f'init.label={label} ' \
+                f'init.id_number={id_number} ' \
+                f'init.bbox_source={bbox_source} ' \
+                f'init.num_frames={num_frames} ' \
+                f'init.port={self.port} '
 
             if self.roi is not None:
-                roi_xmin, roi_ymin, roi_xmax, roi_ymax = self.roi['xmin'], self.roi['ymin'], self.roi['xmax'], self.roi['ymax']
+                roi_xmin, roi_ymin, roi_xmax, roi_ymax = self.roi['xmin'], self.roi['ymin'], self.roi['xmax'], self.roi[
+                    'ymax']
                 init_params = f'{init_params} init.roi={roi_xmin},{roi_ymin},{roi_xmax},{roi_ymax}'
 
             _cmd = f'{base_cmd} {init_params}'
@@ -3534,7 +3537,7 @@ class MainWindow(QMainWindow, WindowMixin):
             xml_reader = PascalVocReader(file, enable_hierarchy=True)
             shapes = xml_reader.getShapes()
             for shape in shapes:
-                label, points, _, _, difficult, bbox_source, id_number, score, _, _ = shape
+                label, points, _, _, difficult, bbox_source, id_number, score, _, _, _, _ = shape
 
                 xmin, ymin = points[0]
                 xmax, ymax = points[2]
@@ -3698,7 +3701,7 @@ class MainWindow(QMainWindow, WindowMixin):
             xml_reader = PascalVocReader(file, enable_hierarchy=True)
             shapes = xml_reader.getShapes()
             for shape in shapes:
-                label, points, _, _, difficult, bbox_source, id_number, score, _, _ = shape
+                label, points, _, _, difficult, bbox_source, id_number, score, _, _, _, _ = shape
 
                 if id_number is None:
                     id_number = -1
