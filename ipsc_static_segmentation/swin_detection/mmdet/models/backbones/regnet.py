@@ -36,7 +36,7 @@ class RegNet(ResNet):
         norm_eval (bool): Whether to set norm layers to eval mode, namely,
             freeze running stats (mean and var). Note: Effect on Batch Norm
             and its variants only.
-        with_cp (bool): Use checkpoint or not. Using checkpoint will save some
+        use_checkpoint (bool): Use checkpoint or not. Using checkpoint will save some
             memory while slowing down the training speed.
         zero_init_residual (bool): whether to use zero init for last norm layer
             in resblocks to let them behave as identity.
@@ -147,7 +147,7 @@ class RegNet(ResNet):
         self.frozen_stages = frozen_stages
         self.conv_cfg = conv_cfg
         self.norm_cfg = norm_cfg
-        self.with_cp = with_cp
+        self.use_checkpoint = use_checkpoint
         self.norm_eval = norm_eval
         self.dcn = dcn
         self.stage_with_dcn = stage_with_dcn
@@ -186,7 +186,7 @@ class RegNet(ResNet):
                 dilation=dilation,
                 style=self.style,
                 avg_down=self.avg_down,
-                use_checkpoint=self.with_cp,
+                use_checkpoint=self.use_checkpoint,
                 conv_cfg=self.conv_cfg,
                 norm_cfg=self.norm_cfg,
                 dcn=dcn,

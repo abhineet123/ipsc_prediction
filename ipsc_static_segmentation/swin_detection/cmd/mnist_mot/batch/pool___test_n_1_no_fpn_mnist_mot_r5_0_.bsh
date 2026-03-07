@@ -1,0 +1,9 @@
+CUDA_VISIBLE_DEVICES=0 python3 tools/test.py config=configs/faster_rcnn/faster_rcnn_r50_fpn_1x_mnist_mot_rgb_512_1k_9600_1_var-rcnn_no_fpn.py ckpt_name=best_bbox_mAP.pth eval=bbox test_name=test_1_10 batch_size=8 pool=0
+
+CUDA_VISIBLE_DEVICES=0 python3 tools/test.py config=configs/faster_rcnn/faster_rcnn_r50_fpn_1x_mnist_mot_rgb_512_1k_9600_1_var-rcnn_no_fpn.py ckpt_name=best_bbox_mAP.pth eval=bbox test_name=test_1_10 batch_size=8 pool=2
+
+CUDA_VISIBLE_DEVICES=0 python3 tools/test.py config=configs/faster_rcnn/faster_rcnn_r50_fpn_1x_mnist_mot_rgb_512_1k_9600_1_var-rcnn_no_fpn.py ckpt_name=best_bbox_mAP.pth eval=bbox test_name=test_1_10 batch_size=8 pool=4
+
+CUDA_VISIBLE_DEVICES=1 python3 tools/test.py config=configs/faster_rcnn/faster_rcnn_r50_fpn_1x_mnist_mot_rgb_512_1k_9600_1_var-rcnn_no_fpn.py ckpt_name=best_bbox_mAP.pth eval=bbox test_name=test_1_10 batch_size=8 pool=8
+
+CUDA_VISIBLE_DEVICES=1 python3 tools/test.py config=configs/faster_rcnn/faster_rcnn_r50_fpn_1x_mnist_mot_rgb_512_1k_9600_1_var-rcnn_no_fpn.py ckpt_name=best_bbox_mAP.pth eval=bbox test_name=test_1_10 batch_size=8 pool=16

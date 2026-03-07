@@ -22,7 +22,7 @@ class HRFPN(nn.Module):
             from {MAX, AVG}.
         conv_cfg (dict): dictionary to construct and config conv layer.
         norm_cfg (dict): dictionary to construct and config norm layer.
-        with_cp  (bool): Use checkpoint or not. Using checkpoint will save some
+        use_checkpoint  (bool): Use checkpoint or not. Using checkpoint will save some
             memory while slowing down the training speed.
         stride (int): stride of 3x3 convolutional layers
     """
@@ -42,7 +42,7 @@ class HRFPN(nn.Module):
         self.out_channels = out_channels
         self.num_ins = len(in_channels)
         self.num_outs = num_outs
-        self.with_cp = with_cp
+        self.use_checkpoint = use_checkpoint
         self.conv_cfg = conv_cfg
         self.norm_cfg = norm_cfg
 
@@ -84,7 +84,7 @@ class HRFPN(nn.Module):
             outs.append(
                 F.interpolate(inputs[i], scale_factor=2**i, mode='bilinear'))
         out = torch.cat(outs, dim=1)
-        if out.requires_grad and self.with_cp:
+        if out.requires_grad and self.use_checkpoint:
             out = checkpoint(self.reduction_conv, out)
         else:
             out = self.reduction_conv(out)
@@ -94,7 +94,7 @@ class HRFPN(nn.Module):
         outputs = []
 
         for i in range(self.num_outs):
-            if outs[i].requires_grad and self.with_cp:
+            if outs[i].requires_grad and self.use_checkpoint:
                 tmp_out = checkpoint(self.fpn_convs[i], outs[i])
             else:
                 tmp_out = self.fpn_convs[i](outs[i])

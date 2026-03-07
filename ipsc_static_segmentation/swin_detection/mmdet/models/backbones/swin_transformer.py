@@ -525,7 +525,8 @@ class SwinTransformer(nn.Module):
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
 
         # build layers
-        self.layers = nn.ModuleList()
+
+        self.layers_list = []
         for i_layer in range(self.num_layers):
             layer = BasicLayer(
                 dim=int(embed_dims * 2 ** i_layer),
@@ -541,8 +542,10 @@ class SwinTransformer(nn.Module):
                 norm_layer=norm_layer,
                 downsample=PatchMerging if (i_layer < self.num_layers - 1) else None,
                 use_checkpoint=use_checkpoint)
-            self.layers.append(layer)
+            # self.layers.append(layer)
+            self.layers_list.append(layer)
 
+        self.layers = nn.ModuleList(self.layers_list)
         num_features = [int(embed_dims * 2 ** i) for i in range(self.num_layers)]
         self.num_features = num_features
 

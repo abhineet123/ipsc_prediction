@@ -107,9 +107,9 @@ else:
         vis_width, vis_height, save_path))
 
 if cv2.__version__.startswith('2'):
-	font_line_type = cv2.CV_AA
+    font_line_type = cv2.CV_AA
 else:
-	font_line_type = cv2.LINE_AA
+    font_line_type = cv2.LINE_AA
 
 csv_raw = []
 out_frame_id = 0
@@ -174,11 +174,11 @@ for ann_line_id in range(n_ann_lines):
             #     raise IOError('Invalid box {}\n in line {}\n'.format(
             #         [xmin, ymin, xmax, ymax], ann_line
             #     ))
-            xmin = min(_xmin,_xmax)
-            xmax = max(_xmin,_xmax)
+            xmin = min(_xmin, _xmax)
+            xmax = max(_xmin, _xmax)
 
-            ymin = min(_ymin,_ymax)
-            ymax = max(_ymin,_ymax)
+            ymin = min(_ymin, _ymax)
+            ymax = max(_ymin, _ymax)
 
         except ValueError as e:
             print('ann_line: ', ann_line)

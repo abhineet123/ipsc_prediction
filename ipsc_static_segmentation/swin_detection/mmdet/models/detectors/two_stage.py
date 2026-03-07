@@ -5,6 +5,15 @@ import torch.nn as nn
 from ..builder import DETECTORS, build_backbone, build_head, build_neck
 from .base import BaseDetector
 
+max_pool_2 = torch.nn.MaxPool2d(2, stride=2, return_indices=True)
+max_unpool_2 = torch.nn.MaxUnpool2d(2, stride=2)
+max_pool_4 = torch.nn.MaxPool2d(4, stride=4, return_indices=True)
+max_unpool_4 = torch.nn.MaxUnpool2d(4, stride=4)
+max_pool_8 = torch.nn.MaxPool2d(8, stride=8, return_indices=True)
+max_unpool_8 = torch.nn.MaxUnpool2d(8, stride=8)
+max_pool_16 = torch.nn.MaxPool2d(16, stride=16, return_indices=True)
+max_unpool_16 = torch.nn.MaxUnpool2d(16, stride=16)
+
 
 @DETECTORS.register_module()
 class TwoStageDetector(BaseDetector):
@@ -24,6 +33,8 @@ class TwoStageDetector(BaseDetector):
                  pretrained=None):
         super(TwoStageDetector, self).__init__()
         self.backbone = build_backbone(backbone)
+
+        self.features = {}
 
         if neck is not None:
             self.neck = build_neck(neck)
@@ -80,8 +91,10 @@ class TwoStageDetector(BaseDetector):
     def extract_feat(self, img):
         """Directly extract features from the backbone+neck."""
         x = self.backbone(img)
+        self.features['backbone'] = x
         if self.with_neck:
             x = self.neck(x)
+            self.features['neck'] = x
         return x
 
     def forward_dummy(self, img):
@@ -95,11 +108,11 @@ class TwoStageDetector(BaseDetector):
         # rpn
         if self.with_rpn:
             rpn_outs = self.rpn_head(x)
-            outs = outs + (rpn_outs, )
+            outs = outs + (rpn_outs,)
         proposals = torch.randn(1000, 4).to(img.device)
         # roi_head
         roi_outs = self.roi_head.forward_dummy(x, proposals)
-        outs = outs + (roi_outs, )
+        outs = outs + (roi_outs,)
         return outs
 
     def forward_train(self,
@@ -184,11 +197,40 @@ class TwoStageDetector(BaseDetector):
         return await self.roi_head.async_simple_test(
             x, proposal_list, img_meta, rescale=rescale)
 
-    def simple_test(self, img, img_metas, proposals=None, rescale=False):
+    def simple_test(self, img, img_metas, proposals=None, rescale=False, x=None, pool=0, set_zero=()):
         """Test without augmentation."""
         assert self.with_bbox, 'Bbox head must be implemented.'
 
-        x = self.extract_feat(img)
+        if x is None:
+            x = self.extract_feat(img)
+
+        if pool > 0:
+            if pool == 2:
+                max_pool = max_pool_2
+                max_unpool = max_unpool_2
+            elif pool == 4:
+                max_pool = max_pool_4
+                max_unpool = max_unpool_4
+            elif pool == 8:
+                max_pool = max_pool_8
+                max_unpool = max_unpool_8
+            elif pool == 16:
+                max_pool = max_pool_16
+                max_unpool = max_unpool_16
+            else:
+                raise AssertionError(f'invalid pool: {pool}')
+
+            x_pooled = []
+            for feat_id, feat in enumerate(x):
+                feat_pooled, indices = max_pool(feat)
+                feat_unpooled = max_unpool(feat_pooled, indices)
+
+                x_pooled.append(feat_unpooled)
+
+            x = tuple(x_pooled)
+
+        for _id in set_zero:
+            x[_id].zero_()
 
         # get origin input shape to onnx dynamic input shape
         if torch.onnx.is_in_onnx_export():

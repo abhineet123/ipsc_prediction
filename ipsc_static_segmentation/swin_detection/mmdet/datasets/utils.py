@@ -136,7 +136,7 @@ class NumClassCheckHook(Hook):
                     assert module.num_classes == len(dataset.CLASSES), \
                         (f'The `num_classes` ({module.num_classes}) in '
                          f'{module.__class__.__name__} of '
-                         f'{model.__class__.__name__} does not matches '
+                         f'{model.__class__.__name__} does not match '
                          f'the length of `CLASSES` '
                          f'{len(dataset.CLASSES)}) in '
                          f'{dataset.__class__.__name__}')

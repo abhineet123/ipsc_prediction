@@ -1,9 +1,9 @@
 <!-- MarkdownTOC -->
 
 - [virtualenv](#virtualen_v_)
-    - [grs/python3.6       @ virtualenv](#grs_python3_6___virtualenv_)
-        - [3.9       @ grs/python3.6/virtualenv](#3_9___grs_python3_6_virtualenv_)
-        - [3.7       @ grs/python3.6/virtualenv](#3_7___grs_python3_6_virtualenv_)
+    - [grs       @ virtualenv](#grs___virtualenv_)
+        - [3.9       @ grs/virtualenv](#3_9___grs_virtualenv_)
+        - [3.7       @ grs/virtualenv](#3_7___grs_virtualenv_)
     - [general       @ virtualenv](#general___virtualenv_)
     - [windows       @ virtualenv](#windows___virtualenv_)
     - [cc       @ virtualenv](#cc___virtualenv_)
@@ -38,11 +38,10 @@
 
 <a id="virtualen_v_"></a>
 # virtualenv
-<a id="grs_python3_6___virtualenv_"></a>
-## grs/python3.6       @ virtualenv-->vita_setup
-
-<a id="3_9___grs_python3_6_virtualenv_"></a>
-### 3.9       @ grs/python3.6/virtualenv-->vita_setup
+<a id="grs___virtualenv_"></a>
+## grs       @ virtualenv-->vita_setup
+<a id="3_9___grs_virtualenv_"></a>
+### 3.9       @ grs/virtualenv-->vita_setup
 apt-get install python3.9-dev
 apt-get install python3.9-tk
 
@@ -54,8 +53,11 @@ python3.9 -m pip install setuptools==59.5.0
 python3.9 -m pip install virtualenv virtualenvwrapper
 mkvirtualenv -p python3.9 vita 
 
-<a id="3_7___grs_python3_6_virtualenv_"></a>
-### 3.7       @ grs/python3.6/virtualenv-->vita_setup
+<a id="3_7___grs_virtualenv_"></a>
+### 3.7       @ grs/virtualenv-->vita_setup
+__latest detectron does not work with python <= 3.7__
+https://github.com/hidaris/thingtalk/issues/9
+
 apt-get install python3.7-dev
 apt-get install python3.7-tk
 

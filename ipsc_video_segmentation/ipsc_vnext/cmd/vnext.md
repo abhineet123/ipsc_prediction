@@ -19,27 +19,35 @@
             - [probs       @ on-g2_0_15/ext_reorg_roi_g2_16_53/idol](#probs___on_g2_0_15_ext_reorg_roi_g2_16_53_idol_)
             - [incremental       @ on-g2_0_15/ext_reorg_roi_g2_16_53/idol](#incremental___on_g2_0_15_ext_reorg_roi_g2_16_53_idol__1)
                 - [g2_0_53       @ incremental/on-g2_0_15/ext_reorg_roi_g2_16_53/idol](#g2_0_53___incremental_on_g2_0_15_ext_reorg_roi_g2_16_53_idol_)
+                - [Test_230710       @ incremental/on-g2_0_15/ext_reorg_roi_g2_16_53/idol](#test_230710___incremental_on_g2_0_15_ext_reorg_roi_g2_16_53_idol_)
+                - [Test_230606       @ incremental/on-g2_0_15/ext_reorg_roi_g2_16_53/idol](#test_230606___incremental_on_g2_0_15_ext_reorg_roi_g2_16_53_idol_)
     - [ext_reorg_roi_g2_54_126       @ idol](#ext_reorg_roi_g2_54_126___idol_)
         - [on-g2_0_53       @ ext_reorg_roi_g2_54_126/idol](#on_g2_0_53___ext_reorg_roi_g2_54_126_idol_)
             - [incremental       @ on-g2_0_53/ext_reorg_roi_g2_54_126/idol](#incremental___on_g2_0_53_ext_reorg_roi_g2_54_126_ido_l_)
         - [on-g2_0_15       @ ext_reorg_roi_g2_54_126/idol](#on_g2_0_15___ext_reorg_roi_g2_54_126_idol_)
             - [incremental       @ on-g2_0_15/ext_reorg_roi_g2_54_126/idol](#incremental___on_g2_0_15_ext_reorg_roi_g2_54_126_ido_l_)
-- [seqformer       @ seqformer](#seqformer___seqforme_r_)
-    - [all_frames_roi_g2_0_37_swinL-ytvis       @ seqformer](#all_frames_roi_g2_0_37_swinl_ytvis___seqforme_r_)
-        - [on-all_frames_roi_g2_38_53       @ all_frames_roi_g2_0_37_swinL-ytvis/seqformer](#on_all_frames_roi_g2_38_53___all_frames_roi_g2_0_37_swinl_ytvis_seqformer_)
-            - [model_0049999       @ on-all_frames_roi_g2_38_53/all_frames_roi_g2_0_37_swinL-ytvis/seqformer](#model_0049999___on_all_frames_roi_g2_38_53_all_frames_roi_g2_0_37_swinl_ytvis_seqforme_r_)
-    - [ext_reorg_roi_g2_0_37       @ seqformer](#ext_reorg_roi_g2_0_37___seqforme_r_)
-            - [on-g2_38_53       @ ext_reorg_roi_g2_0_37/seqformer](#on_g2_38_53___ext_reorg_roi_g2_0_37_seqforme_r_)
-                - [probs       @ on-g2_38_53/ext_reorg_roi_g2_0_37/seqformer](#probs___on_g2_38_53_ext_reorg_roi_g2_0_37_seqforme_r_)
-                - [topk-100       @ on-g2_38_53/ext_reorg_roi_g2_0_37/seqformer](#topk_100___on_g2_38_53_ext_reorg_roi_g2_0_37_seqforme_r_)
-    - [ext_reorg_roi_g2_16_53       @ seqformer](#ext_reorg_roi_g2_16_53___seqforme_r_)
-            - [on-g2_0_15       @ ext_reorg_roi_g2_16_53/seqformer](#on_g2_0_15___ext_reorg_roi_g2_16_53_seqformer_)
-                - [probs       @ on-g2_0_15/ext_reorg_roi_g2_16_53/seqformer](#probs___on_g2_0_15_ext_reorg_roi_g2_16_53_seqforme_r_)
-    - [ext_reorg_roi_g2_54_126       @ seqformer](#ext_reorg_roi_g2_54_126___seqforme_r_)
-            - [on-g2_0_53       @ ext_reorg_roi_g2_54_126/seqformer](#on_g2_0_53___ext_reorg_roi_g2_54_126_seqforme_r_)
-                - [incremental       @ on-g2_0_53/ext_reorg_roi_g2_54_126/seqformer](#incremental___on_g2_0_53_ext_reorg_roi_g2_54_126_seqformer_)
-            - [on-g2_0_15       @ ext_reorg_roi_g2_54_126/seqformer](#on_g2_0_15___ext_reorg_roi_g2_54_126_seqforme_r_)
-                - [incremental       @ on-g2_0_15/ext_reorg_roi_g2_54_126/seqformer](#incremental___on_g2_0_15_ext_reorg_roi_g2_54_126_seqformer_)
+        - [on-Test_230710       @ ext_reorg_roi_g2_54_126/idol](#on_test_230710___ext_reorg_roi_g2_54_126_idol_)
+        - [on-Test_230606       @ ext_reorg_roi_g2_54_126/idol](#on_test_230606___ext_reorg_roi_g2_54_126_idol_)
+- [seq](#seq_)
+    - [all_frames_roi_g2_0_37_swinL-ytvis       @ seq](#all_frames_roi_g2_0_37_swinl_ytvis___se_q_)
+        - [on-all_frames_roi_g2_38_53       @ all_frames_roi_g2_0_37_swinL-ytvis/seq](#on_all_frames_roi_g2_38_53___all_frames_roi_g2_0_37_swinl_ytvis_seq_)
+            - [model_0049999       @ on-all_frames_roi_g2_38_53/all_frames_roi_g2_0_37_swinL-ytvis/seq](#model_0049999___on_all_frames_roi_g2_38_53_all_frames_roi_g2_0_37_swinl_ytvis_se_q_)
+    - [ext_reorg_roi_g2_0_37       @ seq](#ext_reorg_roi_g2_0_37___se_q_)
+            - [on-g2_38_53       @ ext_reorg_roi_g2_0_37/seq](#on_g2_38_53___ext_reorg_roi_g2_0_37_se_q_)
+                - [probs       @ on-g2_38_53/ext_reorg_roi_g2_0_37/seq](#probs___on_g2_38_53_ext_reorg_roi_g2_0_37_se_q_)
+                - [topk-100       @ on-g2_38_53/ext_reorg_roi_g2_0_37/seq](#topk_100___on_g2_38_53_ext_reorg_roi_g2_0_37_se_q_)
+    - [ext_reorg_roi_g2_16_53       @ seq](#ext_reorg_roi_g2_16_53___se_q_)
+            - [on-Test_230710       @ ext_reorg_roi_g2_16_53/seq](#on_test_230710___ext_reorg_roi_g2_16_53_seq_)
+            - [on-Test_230606       @ ext_reorg_roi_g2_16_53/seq](#on_test_230606___ext_reorg_roi_g2_16_53_seq_)
+            - [on-g2_0_15       @ ext_reorg_roi_g2_16_53/seq](#on_g2_0_15___ext_reorg_roi_g2_16_53_seq_)
+                - [probs       @ on-g2_0_15/ext_reorg_roi_g2_16_53/seq](#probs___on_g2_0_15_ext_reorg_roi_g2_16_53_se_q_)
+    - [ext_reorg_roi_g2_54_126       @ seq](#ext_reorg_roi_g2_54_126___se_q_)
+            - [on-Test_230710       @ ext_reorg_roi_g2_54_126/seq](#on_test_230710___ext_reorg_roi_g2_54_126_se_q_)
+            - [on-Test_230606       @ ext_reorg_roi_g2_54_126/seq](#on_test_230606___ext_reorg_roi_g2_54_126_se_q_)
+            - [on-g2_0_53       @ ext_reorg_roi_g2_54_126/seq](#on_g2_0_53___ext_reorg_roi_g2_54_126_se_q_)
+                - [incremental       @ on-g2_0_53/ext_reorg_roi_g2_54_126/seq](#incremental___on_g2_0_53_ext_reorg_roi_g2_54_126_seq_)
+            - [on-g2_0_15       @ ext_reorg_roi_g2_54_126/seq](#on_g2_0_15___ext_reorg_roi_g2_54_126_se_q_)
+                - [incremental       @ on-g2_0_15/ext_reorg_roi_g2_54_126/seq](#incremental___on_g2_0_15_ext_reorg_roi_g2_54_126_seq_)
 
 <!-- /MarkdownTOC -->
 <a id="ido_l_"></a>
@@ -151,6 +159,14 @@ CUDA_VISIBLE_DEVICES=1 python3 projects/IDOL/train_net.py --config-file projects
 ##### g2_0_53       @ incremental/on-g2_0_15/ext_reorg_roi_g2_16_53/idol-->vnext
 CUDA_VISIBLE_DEVICES=1 python3 projects/IDOL/train_net.py --config-file projects/IDOL/configs/idol-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/idol-ipsc-ext_reorg_roi_g2_16_53/model_0254999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_53-incremental OUT_SUFFIX g2_0_53-incremental_probs
 
+<a id="test_230710___incremental_on_g2_0_15_ext_reorg_roi_g2_16_53_idol_"></a>
+##### Test_230710       @ incremental/on-g2_0_15/ext_reorg_roi_g2_16_53/idol-->vnext
+CUDA_VISIBLE_DEVICES=1 python3 projects/IDOL/train_net.py --config-file projects/IDOL/configs/idol-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/idol-ipsc-ext_reorg_roi_g2_16_53/model_0254999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-Test_230710 OUT_SUFFIX Test_230710
+
+<a id="test_230606___incremental_on_g2_0_15_ext_reorg_roi_g2_16_53_idol_"></a>
+##### Test_230606       @ incremental/on-g2_0_15/ext_reorg_roi_g2_16_53/idol-->vnext
+CUDA_VISIBLE_DEVICES=1 python3 projects/IDOL/train_net.py --config-file projects/IDOL/configs/idol-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/idol-ipsc-ext_reorg_roi_g2_16_53/model_0254999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-Test_230606 OUT_SUFFIX Test_230606
+
 <a id="ext_reorg_roi_g2_54_126___idol_"></a>
 ## ext_reorg_roi_g2_54_126       @ idol-->vnext
 ```
@@ -218,58 +234,74 @@ mv inference_model_0596999_incremental_probs-max_length-20 inference_model_05969
 mv inference_model_0596999_g2_0_15-incremental_probs-max_length-2 inference_model_0596999_g2_0_15_max_length-2-incremental_probs
 ```
 
-<a id="seqformer___seqforme_r_"></a>
-# seqformer       @ seqformer-->vnext
-<a id="all_frames_roi_g2_0_37_swinl_ytvis___seqforme_r_"></a>
-## all_frames_roi_g2_0_37_swinL-ytvis       @ seqformer-->vnext
+<a id="on_test_230710___ext_reorg_roi_g2_54_126_idol_"></a>
+### on-Test_230710       @ ext_reorg_roi_g2_54_126/idol-->vnext
+CUDA_VISIBLE_DEVICES=0 python3 projects/IDOL/train_net.py --config-file projects/IDOL/configs/idol-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/idol-ipsc-ext_reorg_roi_g2_54_126/model_0596999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-Test_230710 OUT_SUFFIX Test_230710
+
+<a id="on_test_230606___ext_reorg_roi_g2_54_126_idol_"></a>
+### on-Test_230606       @ ext_reorg_roi_g2_54_126/idol-->vnext
+CUDA_VISIBLE_DEVICES=0 python3 projects/IDOL/train_net.py --config-file projects/IDOL/configs/idol-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/idol-ipsc-ext_reorg_roi_g2_54_126/model_0596999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-Test_230606 OUT_SUFFIX Test_230606
+
+<a id="seq_"></a>
+# seq
+<a id="all_frames_roi_g2_0_37_swinl_ytvis___se_q_"></a>
+## all_frames_roi_g2_0_37_swinL-ytvis       @ seq-->vnext
 sbatch cmd/seq-ipsc-all_frames_roi_g2_0_37_ytvis_swinL.sh
 
 python3 projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-all_frames_roi_g2_0_37_ytvis_swinL.yaml --num-gpus 2
 
-<a id="on_all_frames_roi_g2_38_53___all_frames_roi_g2_0_37_swinl_ytvis_seqformer_"></a>
-### on-all_frames_roi_g2_38_53       @ all_frames_roi_g2_0_37_swinL-ytvis/seqformer-->vnext
+<a id="on_all_frames_roi_g2_38_53___all_frames_roi_g2_0_37_swinl_ytvis_seq_"></a>
+### on-all_frames_roi_g2_38_53       @ all_frames_roi_g2_0_37_swinL-ytvis/seq-->vnext
 python3 projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-all_frames_roi_g2_0_37_ytvis_swinL.yaml --num-gpus 1 --eval-only 
 
-<a id="model_0049999___on_all_frames_roi_g2_38_53_all_frames_roi_g2_0_37_swinl_ytvis_seqforme_r_"></a>
-#### model_0049999       @ on-all_frames_roi_g2_38_53/all_frames_roi_g2_0_37_swinL-ytvis/seqformer-->vnext
+<a id="model_0049999___on_all_frames_roi_g2_38_53_all_frames_roi_g2_0_37_swinl_ytvis_se_q_"></a>
+#### model_0049999       @ on-all_frames_roi_g2_38_53/all_frames_roi_g2_0_37_swinL-ytvis/seq-->vnext
 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-all_frames_roi_g2_0_37_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-all_frames_roi_g2_0_37/model_0049999.pth
 
-<a id="ext_reorg_roi_g2_0_37___seqforme_r_"></a>
-## ext_reorg_roi_g2_0_37       @ seqformer-->vnext
+<a id="ext_reorg_roi_g2_0_37___se_q_"></a>
+## ext_reorg_roi_g2_0_37       @ seq-->vnext
 ```
 sbatch cmd/seq-ipsc-ext_reorg_roi_g2_0_37_ytvis_swinL.sh
 ```
 python3 projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_0_37_ytvis_swinL.yaml --num-gpus 2
 
-<a id="on_g2_38_53___ext_reorg_roi_g2_0_37_seqforme_r_"></a>
-#### on-g2_38_53       @ ext_reorg_roi_g2_0_37/seqformer-->vnext
+<a id="on_g2_38_53___ext_reorg_roi_g2_0_37_se_q_"></a>
+#### on-g2_38_53       @ ext_reorg_roi_g2_0_37/seq-->vnext
 CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_0_37_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_0_37/model_final.pth 
 __incremental__
 CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_0_37_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_0_37/model_final.pth TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_38_53-incremental OUT_SUFFIX incremental
 
-<a id="probs___on_g2_38_53_ext_reorg_roi_g2_0_37_seqforme_r_"></a>
-##### probs       @ on-g2_38_53/ext_reorg_roi_g2_0_37/seqformer-->vnext
+<a id="probs___on_g2_38_53_ext_reorg_roi_g2_0_37_se_q_"></a>
+##### probs       @ on-g2_38_53/ext_reorg_roi_g2_0_37/seq-->vnext
 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_0_37_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_0_37/model_final.pth USE_PROBS 1 OUT_SUFFIX probs 
-<a id="topk_100___on_g2_38_53_ext_reorg_roi_g2_0_37_seqforme_r_"></a>
-##### topk-100       @ on-g2_38_53/ext_reorg_roi_g2_0_37/seqformer-->vnext
+<a id="topk_100___on_g2_38_53_ext_reorg_roi_g2_0_37_se_q_"></a>
+##### topk-100       @ on-g2_38_53/ext_reorg_roi_g2_0_37/seq-->vnext
 CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_0_37_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_0_37/model_final.pth OUT_SUFFIX topk-100 MODEL.SeqFormer.N_TOPK 100
 
 
-<a id="ext_reorg_roi_g2_16_53___seqforme_r_"></a>
-## ext_reorg_roi_g2_16_53       @ seqformer-->vnext
+<a id="ext_reorg_roi_g2_16_53___se_q_"></a>
+## ext_reorg_roi_g2_16_53       @ seq-->vnext
 ```
 sbatch cmd/seq-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.sh
 ```
 python3 projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.yaml --num-gpus 2 --resume
 
-<a id="on_g2_0_15___ext_reorg_roi_g2_16_53_seqformer_"></a>
-#### on-g2_0_15       @ ext_reorg_roi_g2_16_53/seqformer-->vnext
+<a id="on_test_230710___ext_reorg_roi_g2_16_53_seq_"></a>
+#### on-Test_230710       @ ext_reorg_roi_g2_16_53/seq-->vnext
+CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_16_53/model_0241999.pth TEST_NAME ytvis-ipsc-Test_230710 OUT_SUFFIX Test_230710
+
+<a id="on_test_230606___ext_reorg_roi_g2_16_53_seq_"></a>
+#### on-Test_230606       @ ext_reorg_roi_g2_16_53/seq-->vnext
+CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_16_53/model_0241999.pth TEST_NAME ytvis-ipsc-Test_230606 OUT_SUFFIX Test_230606
+
+<a id="on_g2_0_15___ext_reorg_roi_g2_16_53_seq_"></a>
+#### on-g2_0_15       @ ext_reorg_roi_g2_16_53/seq-->vnext
 CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_16_53/model_0241999.pth 
 __incremental__
 CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_16_53/model_0241999.pth TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15-incremental OUT_SUFFIX incremental
 
-<a id="probs___on_g2_0_15_ext_reorg_roi_g2_16_53_seqforme_r_"></a>
-##### probs       @ on-g2_0_15/ext_reorg_roi_g2_16_53/seqformer-->vnext
+<a id="probs___on_g2_0_15_ext_reorg_roi_g2_16_53_se_q_"></a>
+##### probs       @ on-g2_0_15/ext_reorg_roi_g2_16_53/seq-->vnext
 CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_16_53/model_0241999.pth USE_PROBS 1 OUT_SUFFIX probs 
 
 CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_16_53/model_0241999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15  
@@ -285,15 +317,23 @@ CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file proj
 __incremental__
 CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_16_53_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_16_53/model_0241999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15-incremental OUT_SUFFIX incremental_probs
 
-<a id="ext_reorg_roi_g2_54_126___seqforme_r_"></a>
-## ext_reorg_roi_g2_54_126       @ seqformer-->vnext
+<a id="ext_reorg_roi_g2_54_126___se_q_"></a>
+## ext_reorg_roi_g2_54_126       @ seq-->vnext
 ```
 sbatch cmd/seq-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.sh
 ```
 python3 projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 2 --resume
 
-<a id="on_g2_0_53___ext_reorg_roi_g2_54_126_seqforme_r_"></a>
-#### on-g2_0_53       @ ext_reorg_roi_g2_54_126/seqformer-->vnext
+<a id="on_test_230710___ext_reorg_roi_g2_54_126_se_q_"></a>
+#### on-Test_230710       @ ext_reorg_roi_g2_54_126/seq-->vnext
+CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth TEST_NAME ytvis-ipsc-Test_230710 OUT_SUFFIX Test_230710
+
+<a id="on_test_230606___ext_reorg_roi_g2_54_126_se_q_"></a>
+#### on-Test_230606       @ ext_reorg_roi_g2_54_126/seq-->vnext
+CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth TEST_NAME ytvis-ipsc-Test_230606 OUT_SUFFIX Test_230606
+
+<a id="on_g2_0_53___ext_reorg_roi_g2_54_126_se_q_"></a>
+#### on-g2_0_53       @ ext_reorg_roi_g2_54_126/seq-->vnext
 ```
 sbatch cmd/seq-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL_on_0_53.sh
 ```
@@ -316,8 +356,8 @@ scancel
 ```
 CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_53-max_length-19 OUT_SUFFIX max_length-19
 
-<a id="incremental___on_g2_0_53_ext_reorg_roi_g2_54_126_seqformer_"></a>
-##### incremental       @ on-g2_0_53/ext_reorg_roi_g2_54_126/seqformer-->vnext
+<a id="incremental___on_g2_0_53_ext_reorg_roi_g2_54_126_seq_"></a>
+##### incremental       @ on-g2_0_53/ext_reorg_roi_g2_54_126/seq-->vnext
 ```
 sbatch cmd/seq-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL_on_0_53_inc.sh
 ```
@@ -333,8 +373,8 @@ CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file proj
 __-max_length-20-__
 CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_53-max_length-20-incremental OUT_SUFFIX max_length-20-incremental_probs
 
-<a id="on_g2_0_15___ext_reorg_roi_g2_54_126_seqforme_r_"></a>
-#### on-g2_0_15       @ ext_reorg_roi_g2_54_126/seqformer-->vnext
+<a id="on_g2_0_15___ext_reorg_roi_g2_54_126_se_q_"></a>
+#### on-g2_0_15       @ ext_reorg_roi_g2_54_126/seq-->vnext
 CUDA_VISIBLE_DEVICES=0 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15 OUT_SUFFIX g2_0_15
 __-max_length-1-__
 CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15-max_length-1 OUT_SUFFIX g2_0_15-max_length-1
@@ -345,8 +385,8 @@ CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file proj
 __-max_length-8-__
 CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15-max_length-2 OUT_SUFFIX g2_0_15-max_length-8
 
-<a id="incremental___on_g2_0_15_ext_reorg_roi_g2_54_126_seqformer_"></a>
-##### incremental       @ on-g2_0_15/ext_reorg_roi_g2_54_126/seqformer-->vnext
+<a id="incremental___on_g2_0_15_ext_reorg_roi_g2_54_126_seq_"></a>
+##### incremental       @ on-g2_0_15/ext_reorg_roi_g2_54_126/seq-->vnext
 CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15-incremental OUT_SUFFIX g2_0_15-incremental_probs
 __-max_length-2-__
 CUDA_VISIBLE_DEVICES=1 python projects/SeqFormer/train_net.py --config-file projects/SeqFormer/configs/seqformer-ipsc-ext_reorg_roi_g2_54_126_ytvis_swinL.yaml --num-gpus 1 --eval-only MODEL.WEIGHTS log/seqformer-ipsc-ext_reorg_roi_g2_54_126/model_0495999.pth USE_PROBS 1 TEST_NAME ytvis-ipsc-ext_reorg_roi_g2_0_15-max_length-2-incremental OUT_SUFFIX g2_0_15-max_length-2-incremental_probs

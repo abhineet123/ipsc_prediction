@@ -127,7 +127,7 @@ class ResNeXt(ResNet):
         norm_eval (bool): Whether to set norm layers to eval mode, namely,
             freeze running stats (mean and var). Note: Effect on Batch Norm
             and its variants only.
-        with_cp (bool): Use checkpoint or not. Using checkpoint will save some
+        use_checkpoint (bool): Use checkpoint or not. Using checkpoint will save some
             memory while slowing down the training speed.
         zero_init_residual (bool): whether to use zero init for last norm layer
             in resblocks to let them behave as identity.

@@ -12,6 +12,13 @@ from mmcv import Config, DictAction
 from mmcv.runner import get_dist_info, init_dist
 from mmcv.utils import get_git_hash
 
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+# os.environ["RANK"] = "0"
+# os.environ["WORLD_SIZE"] = "2"
+# os.environ["MASTER_ADDR"] = "2"
+
 from mmdet import __version__
 from mmdet.apis import set_random_seed, train_detector
 from mmdet.datasets import build_dataset
@@ -27,6 +34,11 @@ def parse_args():
                         type=str,
                         help='the dir to save logs and models')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
+    parser.add_argument(
+        '--resume',
+        action='store_true',
+        help='resume from the latest checkpoint'
+    )
     parser.add_argument(
         '--resume-from', help='the checkpoint file to resume from')
     parser.add_argument(
@@ -70,7 +82,7 @@ def parse_args():
     parser.add_argument(
         '--launcher',
         choices=['none', 'pytorch', 'slurm', 'mpi'],
-        default='none',
+        default='pytorch',
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
     args = parser.parse_args()
@@ -116,6 +128,9 @@ def main():
                                 osp.splitext(osp.basename(args.config))[0])
     if args.resume_from is not None:
         cfg.resume_from = args.resume_from
+    elif args.resume:
+        cfg.resume_from = args.resume_from = osp.join(cfg.work_dir, "latest.pth")
+
     if args.gpu_ids is not None:
         cfg.gpu_ids = args.gpu_ids
     else:
@@ -127,7 +142,7 @@ def main():
         import torch.distributed as dist
         dist.init_process_group('gloo',
                                 init_method=args.init,
-                                rank=0, world_size=1
+                                rank=0, world_size=args.gpus
                                 )
     else:
         distributed = True

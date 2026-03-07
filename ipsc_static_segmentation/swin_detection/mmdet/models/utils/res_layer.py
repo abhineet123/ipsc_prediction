@@ -126,7 +126,7 @@ class SimplifiedBasicBlock(nn.Module):
         super(SimplifiedBasicBlock, self).__init__()
         assert dcn is None, 'Not implemented yet.'
         assert plugins is None, 'Not implemented yet.'
-        assert not with_cp, 'Not implemented yet.'
+        assert not use_checkpoint, 'Not implemented yet.'
         self.with_norm = norm_cfg is not None
         with_bias = True if norm_cfg is None else False
         self.conv1 = build_conv_layer(
@@ -153,7 +153,7 @@ class SimplifiedBasicBlock(nn.Module):
         self.downsample = downsample
         self.stride = stride
         self.dilation = dilation
-        self.with_cp = with_cp
+        self.use_checkpoint = use_checkpoint
 
     @property
     def norm1(self):

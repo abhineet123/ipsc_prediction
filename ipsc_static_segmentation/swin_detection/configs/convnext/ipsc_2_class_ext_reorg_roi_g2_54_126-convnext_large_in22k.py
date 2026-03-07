@@ -5,7 +5,8 @@ _base_ = [
 ]
 
 dataset_type = 'IPSC2Class'
-data_root = 'data/ipsc/well3/all_frames_roi/'
+data_root = '/data/ipsc/well3/all_frames_roi/'
+data_root_test = '/data/ipsc/'
 
 model = dict(
     backbone=dict(
@@ -182,6 +183,20 @@ data = dict(
         type=dataset_type,
         ann_file=data_root + 'ext_reorg_roi_g2_0_15.json',
         img_prefix=data_root,
+        pipeline=test_pipeline),
+
+    Test_230606=dict(
+        samples_per_gpu=1,
+        type=dataset_type,
+        ann_file=data_root_test + 'Test_230606.json',
+        img_prefix=data_root_test,
+        pipeline=test_pipeline),
+
+    Test_230710=dict(
+        samples_per_gpu=1,
+        type=dataset_type,
+        ann_file=data_root_test + 'Test_230710.json',
+        img_prefix=data_root_test,
         pipeline=test_pipeline),
 
 )

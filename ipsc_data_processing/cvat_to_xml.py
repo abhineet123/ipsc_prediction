@@ -55,6 +55,7 @@ class Params:
         self.cfg = ()
         self.input = ['', ]
         self.root_dir = ''
+        self.db5 = 0
         self.xml_name = 'annotations.xml'
         self.move_images = False
         self.sizes = []
@@ -67,9 +68,10 @@ class Params:
         self.rename_unused = 0
         self.rename_useless = 0
         self.allow_target_id = 1
+        self.allow_empty = 1
         self.write_empty = 0
         self.allow_missing_ann = 0
-        self.name_from_title = True
+        self.name_from_title = 1
         self.img_dir_name = 'images'
         self.output = ''
         self.img_exts = ['.jpg', '.jpeg', '.png', '.bmp', '.tif']
@@ -89,9 +91,9 @@ def parse_image(tag):
 
                 from https://github.com/newfarms/2d-rock-detection/blob/development/src/preprocessing/cvat_to_csv.py
     """
-    image_tag = {'shapes': []}
+    image_dict = {'shapes': []}
     for attr, value in tag.items():  # iterate all the attributes in the tag
-        image_tag[attr] = value
+        image_dict[attr] = value
 
     for poly_tag in tag.iter('polygon'):
         polygon = {}
@@ -106,8 +108,8 @@ def parse_image(tag):
 
         # calculate bounding boxes
         points_string = poly_tag.get("points")
-        width = float(image_tag["width"])
-        height = float(image_tag["height"])
+        width = float(image_dict["width"])
+        height = float(image_dict["height"])
         bbox, mask = get_bbox_from_poly_points_string(points_string)
         polygon["bbox"] = bbox
         polygon["mask"] = mask
@@ -115,12 +117,68 @@ def parse_image(tag):
         if bbox[0] == bbox[1] or bbox[2] == bbox[3]:  # remove bbox with 0 area
             continue
 
-        image_tag['width'] = width
-        image_tag['height'] = height
+        image_dict['width'] = width
+        image_dict['height'] = height
 
-        image_tag['shapes'].append(polygon)
+        image_dict['shapes'].append(polygon)
 
-    return image_tag
+    return image_dict
+
+
+def parse_image_db5(tag):
+    """
+    Parse image XML tag and store all information in the python dict
+    Note: Invalid bounding boxes (e.g. area == 0) will be removed.
+    For attributes and documentations about CVAT image 1.1 see:
+    https://openvinotoolkit.github.io/cvat/docs/manual/advanced/xml_format/
+    :param tag: image tag in XML file
+    :type tag: lxml.ElementTree
+    :param absolute: use absolute image pixel coordinates as opposed to fractional coordinates
+    :type absolute: bool
+    :return XML contents in python dict {image_attributes, shapes: [{polygon_attributes}]}
+
+                from https://github.com/newfarms/2d-rock-detection/blob/development/src/preprocessing/cvat_to_csv.py
+    """
+    image_dict = {'shapes': []}
+    for attr, value in tag.items():  # iterate all the attributes in the tag
+        image_dict[attr] = value
+
+    for bbox_tag in tag.iter('box'):
+        polygon = {}
+
+        # extract attributes from annotation
+        # for example: attributes size and easy
+        for attribute_tag in bbox_tag.iter('attribute'):
+            polygon[attribute_tag.attrib['name']] = attribute_tag.text
+
+        for key, value in bbox_tag.items():  # for example: label
+            polygon[key] = value
+
+        # calculate bounding boxes
+        x_min = float(bbox_tag.get("xtl"))
+        y_min = float(bbox_tag.get("ytl"))
+        x_max = float(bbox_tag.get("xbr"))
+        y_max = float(bbox_tag.get("ybr"))
+
+        bbox = [x_min, x_max, y_min, y_max]
+
+        mask = None
+
+        width = float(image_dict["width"])
+        height = float(image_dict["height"])
+
+        polygon["bbox"] = bbox
+        polygon["mask"] = mask
+
+        if bbox[0] == bbox[1] or bbox[2] == bbox[3]:  # remove bbox with 0 area
+            continue
+
+        image_dict['width'] = width
+        image_dict['height'] = height
+
+        image_dict['shapes'].append(polygon)
+
+    return image_dict
 
 
 def get_bbox_from_poly_points_string(points_string):
@@ -245,13 +303,13 @@ def main():
         print('getting names from titles')
 
     n_total_images = 0
-    n_skipped_images = 0
-    n_skipped_boxes = 0
-    n_total_boxes = 0
+    n_skipped_img = 0
+    n_skipped_obj = 0
+    n_total_objs = 0
 
     missing_images = []
     skipped_images = []
-    used_img_paths = []
+    img_paths_in_xml = []
 
     for xml_id, xml_path in enumerate(xml_paths):
 
@@ -305,114 +363,58 @@ def main():
         seq_xml_path = linux_path(seq_root_path, labels_name)
         os.makedirs(seq_xml_path, exist_ok=True)
 
+        new_images_dir = None
         if params.move_images:
             new_images_dir = linux_path(seq_root_path, "images")
             os.makedirs(new_images_dir, exist_ok=True)
 
         print(f'\n{xml_id + 1} / {n_xml_paths}: {xml_path} --> {seq_xml_path}')
 
-        pbar = tqdm(image_tags)
-
-        n_missing_images = 0
+        n_missing_img = 0
 
         # print('params.move_images: {}'.format(params.move_images))
 
         flip_img = params.vert_flip or params.horz_flip
 
+        pbar = tqdm(image_tags)
         for image_tag in pbar:
-            image_dict = parse_image(image_tag)
+            if params.db5:
+                image_dict = parse_image_db5(image_tag)
+            else:
+                image_dict = parse_image(image_tag)
 
             image_title_path = image_dict["name"]
-
             image_title = os.path.splitext(os.path.basename(image_title_path))[0]
-            try:
-                old_img_path = img_title_to_path[image_title]
-            except KeyError:
-                msg = 'image not found: {}'.format(image_title)
-                missing_images.append(image_title)
-                if params.allow_missing_images:
-                    # print(msg)
-                    n_missing_images += 1
-                    continue
-                else:
-                    raise AssertionError(msg)
-
-            n_total_images += 1
-
-            img_path = old_img_path
-
-            used_img_paths.append(old_img_path)
 
             n_boxes = len(image_dict['shapes'])
 
+            n_total_images += 1
+
             if n_boxes == 0:
-                print(f'no annotated boxes in xml for image: {old_img_path}')
-                if rename_useless:
-                    dst_path = old_img_path + '.useless'
-                    shutil.move(old_img_path, dst_path)
+                if not params.allow_empty:
+                    raise AssertionError(f'no annotated boxes in xml for image: {image_title}')
+                # if rename_useless:
+                #     dst_path = old_img_path + '.useless'
+                #     shutil.move(old_img_path, dst_path)
 
                 if not write_empty:
                     continue
 
-            if params.move_images:
-                # old_img_path = in_path.parent / "images" / Path(image_title_path)
-                new_img_path = linux_path(new_images_dir, os.path.basename(old_img_path))
-                # print('{} --> {}'.format(old_img_path, new_img_path))
-
-                shutil.move(old_img_path, new_img_path)
-
-                img_path = new_img_path
+            valid_objs = []
 
             img_w = int(image_dict["width"])
             img_h = int(image_dict["height"])
 
-            img_name = os.path.basename(img_path)
-
-            # relative to the folder containing images in this sequence
-            img_path_rel = os.path.relpath(img_path, img_dir).rstrip(
-                '.' + os.sep).replace(os.sep, '/')
-            """path of the output XML relative to the folder containing all the XMLs for the sequence 
-            should be the same as the path of the image relative to the folder containing all the 
-            images for the sequence so that any sorting present in the latter is retained in the former"""
-            img_path_rel_noext = os.path.splitext(img_path_rel)[0]
-
-            """img_path_rel_db should be relative to the json file for swin detection so assume that 
-            db_root_path is same as the path where json would be created, i.e. the root folder 
-            containing all sequences"""
-            img_path_rel_db = os.path.relpath(img_path, db_root_path).rstrip('.' + os.sep).replace(os.sep, '/')
-
-            valid_bboxes = []
-
-            image_shape = [img_h, img_w, 3]
-
-            xml_writer = PascalVocWriter(foldername=seq_xml_path,
-                                         filename=img_name,
-                                         imgSize=image_shape,
-                                         localImgPath=img_path_rel_db,
-                                         )
-
-            if flip_img and params.write_img:
-                src_img = cv2.imread(img_path)
-                if params.vert_flip:
-                    src_img = np.flipud(src_img)
-                if params.horz_flip:
-                    src_img = np.fliplr(src_img)
-
-                cv2.imwrite(img_path, src_img)
-
             for shape in image_dict['shapes']:
-                n_total_boxes += 1
+                n_total_objs += 1
 
-                skipped_box_percent = n_skipped_boxes / n_total_boxes * 100
-                skipped_image_percent = n_skipped_images / n_total_images * 100
+                skipped_obj_pc = n_skipped_obj / n_total_objs * 100
+                skipped_img_pc = n_skipped_img / n_total_images * 100
 
-                pbar.set_description('{} :: skipped boxes: {} / {} ({:.2f}%) '
-                                     'skipped images: {} / {} ({:.2f}%) '
-                                     'missing_images: {}'.format(
-                    seq_name,
-                    n_skipped_boxes, n_total_boxes, skipped_box_percent,
-                    n_skipped_images, n_total_images, skipped_image_percent,
-                    n_missing_images))
+                pbar.set_description(f'{seq_name} :: '
+                                     f'skipped boxes: {n_skipped_obj} / {n_total_objs} ({skipped_obj_pc:.2f}%) '
+                                     f'skipped images: {n_skipped_img} / {n_total_images} ({skipped_img_pc:.2f}%) '
+                                     f'missing_images: {n_missing_img}')
 
                 bbox = shape["bbox"]
                 mask = shape["mask"]
@@ -439,7 +441,8 @@ def main():
 
                         assert y_min < y_max, "invalid y_min, y_max"
 
-                        mask = [(x, img_h - y - 1, f) for x, y, f in mask]
+                        if mask is not None:
+                            mask = [(x, img_h - y - 1, f) for x, y, f in mask]
 
                     if params.horz_flip:
                         x_min = img_w - x_min - 1
@@ -450,13 +453,14 @@ def main():
 
                         assert x_min < x_max, "invalid x_min, x_max"
 
-                        mask = [(img_w - x - 1, y, f) for x, y, f in mask]
+                        if mask is not None:
+                            mask = [(img_w - x - 1, y, f) for x, y, f in mask]
 
                     # mask_pts =[(x, y) for x, y, f in mask]
                     # drawBox(src_img, x_min, y_min, x_max, y_max, mask=mask_pts)
 
-                cx = (x_min + x_max) / 2.0
-                cy = (y_min + y_max) / 2.0
+                # cx = (x_min + x_max) / 2.0
+                # cy = (y_min + y_max) / 2.0
                 w = (x_max - x_min)
                 h = (y_max - y_min)
 
@@ -468,17 +472,17 @@ def main():
                     except KeyError:
                         raise AssertionError('size attribute missing for object')
                     else:
-                        size_to_area_file.write('{:s}\t{:s}\t{:s}\t{:d}\n'.format(
-                            seq_name, img_path_rel_noext, size, area))
+                        # size_to_area_file.write('{:s}\t{:s}\t{:s}\t{:d}\n'.format(
+                        #     seq_name, img_path_rel_noext, size, area))
                         if size not in sizes:
-                            n_skipped_boxes += 1
+                            n_skipped_obj += 1
                             continue
 
                 if (params.min_area > 0) and (area < params.min_area):
-                    n_skipped_boxes += 1
+                    n_skipped_obj += 1
                     continue
 
-                xml_dict = dict(
+                obj_dict = dict(
                     xmin=x_min,
                     ymin=y_min,
                     xmax=x_max,
@@ -492,36 +496,90 @@ def main():
                     mask_img=None
                 )
 
-                xml_writer.addBndBox(**xml_dict)
+                valid_objs.append(obj_dict)
 
-                valid_bboxes.append([cx, cy, w, h])
+            if not valid_objs:
+                print(f"no valid boxes found out of total {n_boxes} boxes for {image_title}")
+                n_skipped_img += 1
+                skipped_images.append(image_title)
+                if not write_empty:
+                    continue
 
-            if write_empty or valid_bboxes:
+            try:
+                old_img_path = img_title_to_path[image_title]
+            except KeyError:
+                msg = f'image not found: {image_title}'
+                missing_images.append(image_title)
+                if not valid_objs or params.allow_missing_images:
+                    # print(msg)
+                    n_missing_img += 1
+                    continue
+                else:
+                    raise AssertionError(msg)
 
-                img_xml_file_path = linux_path(seq_xml_path, img_path_rel_noext + ".xml")
-                img_xml_file_dir = os.path.dirname(img_xml_file_path)
-                os.makedirs(img_xml_file_dir, exist_ok=1)
+            img_path = old_img_path
 
-                # if flip_img:
-                #     cv2.imshow('src_img', src_img)
-                #     cv2.waitKey(0)
+            img_paths_in_xml.append(old_img_path)
 
-                xml_writer.save(targetFile=img_xml_file_path, verbose=False)
-            else:
-                print(f"no valid boxes found out of total {n_boxes} boxes for {old_img_path}")
-                n_skipped_images += 1
-                skipped_images.append((old_img_path, img_name))
+            if params.move_images:
+                new_img_path = linux_path(new_images_dir, os.path.basename(old_img_path))
+                # print('{} --> {}'.format(old_img_path, new_img_path))
+
+                shutil.move(old_img_path, new_img_path)
+
+                img_path = new_img_path
+
+            if flip_img and params.write_img:
+                src_img = cv2.imread(img_path)
+                if params.vert_flip:
+                    src_img = np.flipud(src_img)
+                if params.horz_flip:
+                    src_img = np.fliplr(src_img)
+
+                cv2.imwrite(img_path, src_img)
+
+            img_name = os.path.basename(img_path)
+
+            # relative to the folder containing images in this sequence
+            img_path_rel = os.path.relpath(img_path, img_dir).rstrip(
+                '.' + os.sep).replace(os.sep, '/')
+            """path of the output XML relative to the folder containing all the XMLs for the sequence 
+            should be the same as the path of the image relative to the folder containing all the 
+            images for the sequence so that any sorting present in the latter is retained in the former"""
+            img_path_rel_noext = os.path.splitext(img_path_rel)[0]
+
+            """img_path_rel_db should be relative to the json file for swin detection so assume that 
+            db_root_path is same as the path where json would be created, i.e. the root folder 
+            containing all sequences"""
+            img_path_rel_db = os.path.relpath(img_path, db_root_path).rstrip('.' + os.sep).replace(os.sep, '/')
+
+            image_shape = [img_h, img_w, 3]
+
+            xml_writer = PascalVocWriter(foldername=seq_xml_path,
+                                         filename=img_name,
+                                         imgSize=image_shape,
+                                         localImgPath=img_path_rel_db,
+                                         )
+
+            for obj_dict in valid_objs:
+                xml_writer.addBndBox(**obj_dict)
+
+            img_xml_file_path = linux_path(seq_xml_path, img_path_rel_noext + ".xml")
+            img_xml_file_dir = os.path.dirname(img_xml_file_path)
+            os.makedirs(img_xml_file_dir, exist_ok=1)
+
+            xml_writer.save(targetFile=img_xml_file_path, verbose=False)
 
         # not in xml
-        unused_img_paths = list(set(img_paths) - set(used_img_paths))
+        img_paths_not_in_xml = list(set(img_paths) - set(img_paths_in_xml))
 
-        if not unused_img_paths:
+        if not img_paths_not_in_xml:
             continue
 
-        n_unused_img_paths = len(unused_img_paths)
-        # print('found {} unused images:\n{}'.format(n_unused_img_paths, '\n'.join(unused_img_paths)))
+        n_unused_img_paths = len(img_paths_not_in_xml)
+        # print('found {} unused images:\n{}'.format(n_unused_img_paths, '\n'.join(img_paths_not_in_xml)))
         if rename_unused:
-            for unused_img_path in unused_img_paths:
+            for unused_img_path in img_paths_not_in_xml:
                 dst_path = unused_img_path + '.unused'
                 shutil.move(unused_img_path, dst_path)
 
@@ -529,7 +587,7 @@ def main():
             continue
 
         print(f'writing xml files for {n_unused_img_paths} unused images')
-        for unused_img_path in tqdm(unused_img_paths):
+        for unused_img_path in tqdm(img_paths_not_in_xml):
             img_name = os.path.basename(unused_img_path)
 
             # relative to the folder containing images in this sequence
@@ -562,7 +620,7 @@ def main():
 
     if skipped_images:
         with open('skipped_images.txt', 'w') as fid:
-            fid.write('\n'.join('\t'.join(k) for k in skipped_images))
+            fid.write('\n'.join(k for k in skipped_images))
 
     if size_to_area_file is not None:
         size_to_area_file.close()

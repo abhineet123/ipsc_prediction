@@ -1,3 +1,4 @@
+import os
 
 # BGR values for different colors
 col_bgr = {
@@ -155,6 +156,11 @@ col_bgr = {
     'green': (0, 255, 0),
     'magenta': (255, 0, 255)
 }
+
+
+def linux_path(*args, **kwargs):
+    return os.path.join(*args, **kwargs).replace(os.sep, '/')
+
 
 def read_class_info(class_info_path):
     is_composite = 0

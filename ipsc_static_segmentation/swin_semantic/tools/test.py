@@ -59,6 +59,7 @@ def parse_args():
     parser.add_argument('--local_rank', type=int, default=0)
     parser.add_argument('--write_masks', action='store_true')
     parser.add_argument('--blended_vis', action='store_true')
+    parser.add_argument('--write_empty', action='store_true')
     parser.add_argument('--collect_results', action='store_true')
 
     # paramparse.from_parser(parser, to_clipboard=1)
@@ -124,7 +125,20 @@ def main():
     # build the model and load checkpoint
     cfg.model.train_cfg = None
     model = build_segmentor(cfg.model, test_cfg=cfg.get('test_cfg'))
-    checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
+
+    ckpt_path = args.checkpoint
+    if os.path.isdir(ckpt_path):
+        ckpt_path = os.path.join(ckpt_path, 'latest.pth')
+
+    ckpt_path_abs = os.path.realpath(ckpt_path)
+    ckpt_name = os.path.splitext(os.path.basename(ckpt_path_abs))[0]
+    args.show_dir = f'{args.show_dir}-{ckpt_name}'
+
+    print(f'ckpt_path: {ckpt_path}')
+    print(f'ckpt_path_abs: {ckpt_path_abs}')
+    print(f'show_dir: {args.show_dir}')
+
+    checkpoint = load_checkpoint(model, ckpt_path_abs, map_location='cpu')
     model.CLASSES = checkpoint['meta']['CLASSES']
     model.PALETTE = checkpoint['meta']['PALETTE']
 
@@ -142,7 +156,8 @@ def main():
         efficient_test,
         args.write_masks,
         args.blended_vis,
-        args.collect_results
+        args.collect_results,
+        args.write_empty,
     )
     # else:
     # model = MMDistributedDataParallel(

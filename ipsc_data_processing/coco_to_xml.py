@@ -30,7 +30,7 @@ from datetime import datetime
 
 sys.path.append('..')
 
-from eval_utils import get_mask_rle_iou, get_iou, contour_pts_from_mask, mask_pts_to_img, \
+from eval_utils import get_mask_rle_iou, get_iou, mask_img_to_pts, mask_pts_to_img, \
     col_bgr, resize_ar, add_suffix, drawBox, linux_path
 
 from pycocotools.coco import COCO
@@ -83,6 +83,7 @@ class Params:
         self._sweep_params = [
             'nms_thresh',
         ]
+
 
 def ytvis_to_coco(ytvis_gt, ytvis_preds,
                   coco_gt_json_path, coco_json_path,
@@ -274,7 +275,7 @@ def ytvis_to_coco(ytvis_gt, ytvis_preds,
         det_vid_to_img = {}
         det_img_to_vid = {}
 
-        log_dir ='log/coco_to_xml'
+        log_dir = 'log/coco_to_xml'
 
         os.makedirs(log_dir, exist_ok=1)
 
@@ -339,7 +340,7 @@ def ytvis_to_coco(ytvis_gt, ytvis_preds,
                 invalid_mask = 0
                 xmin = None
 
-                mask_pts, mask_bb, is_multi = contour_pts_from_mask(mask_orig)
+                mask_pts, mask_bb, is_multi = mask_img_to_pts(mask_orig)
 
                 if len(mask_pts) < 4:
                     invalid_mask = 1
@@ -610,6 +611,12 @@ def run(params, *argv):
         pred_json_path = linux_path(params.root_dir, pred_json_path)
         gt_json_path = linux_path(params.root_dir, gt_json_path)
 
+    pred_json_dir = os.path.dirname(pred_json_path)
+    print(os.listdir('/'))
+    print(os.listdir('/data'))
+    print(os.listdir('/data/ipsc'))
+    print(os.listdir(pred_json_dir))
+
     assert os.path.exists(pred_json_path), f"pred_json_path does not exist: {pred_json_path}"
     assert os.path.exists(gt_json_path), f"gt_json_path does not exist: {gt_json_path}"
 
@@ -807,51 +814,54 @@ def run(params, *argv):
             if params.enable_mask:
                 ann_img = ann_img.astype(np.float32)
 
-            anns = ann_df.loc[ann_df['image_id'] == gt_image_id]
+            if not ann_df.empty:
+                anns = ann_df.loc[ann_df['image_id'] == gt_image_id]
 
-            for ann_id, ann in anns.iterrows():
-                label = ann['label']
-                col = class_name_to_col[label]
-                ann_bbox = ann['bbox']
-                if params.enable_mask:
-                    ann_segm = ann['segmentation']
-                    if type(ann_segm) == list:
-                        if len(ann_segm) == 1:
-                            ann_segm = ann_segm[0]
+                for ann_id, ann in anns.iterrows():
+                    label = ann['label']
+                    col = class_name_to_col[label]
+                    ann_bbox = ann['bbox']
+                    if params.enable_mask:
+                        ann_segm = ann['segmentation']
+                        if type(ann_segm) == list:
+                            if len(ann_segm) == 1:
+                                ann_segm = ann_segm[0]
 
-                        n_pts = int(len(ann_segm) / 2)
-                        contour_pts = np.array(ann_segm).reshape((n_pts, 2))
-                        contour_pts2 = np.asarray([contour_pts, ], dtype=np.int32)
+                            n_pts = int(len(ann_segm) / 2)
+                            contour_pts = np.array(ann_segm).reshape((n_pts, 2))
+                            contour_pts2 = np.asarray([contour_pts, ], dtype=np.int32)
 
-                        ann_mask = np.zeros((h, w), dtype=np.uint8)
-                        ann_mask = cv2.fillPoly(ann_mask, contour_pts2, 255)
-                        ann_mask_binary = ann_mask > 0
+                            ann_mask = np.zeros((h, w), dtype=np.uint8)
+                            ann_mask = cv2.fillPoly(ann_mask, contour_pts2, 255)
+                            ann_mask_binary = ann_mask > 0
 
-                        mask_cv = contour_pts.reshape((-1, 1, 2)).astype(np.int32)
-                        cv2.drawContours(ann_img, mask_cv, -1, col_bgr[col], thickness=2)
+                            mask_cv = contour_pts.reshape((-1, 1, 2)).astype(np.int32)
+                            cv2.drawContours(ann_img, mask_cv, -1, col_bgr[col], thickness=2)
 
-                        # rle = mask_util.frPyObjects([ann_segm], h, w)
-                    else:
-                        if type(ann_segm['counts']) == list:
-                            rle = mask_util.frPyObjects([ann_segm], h, w)
+                            # rle = mask_util.frPyObjects([ann_segm], h, w)
                         else:
-                            rle = [ann_segm, ]
+                            if type(ann_segm['counts']) == list:
+                                rle = mask_util.frPyObjects([ann_segm], h, w)
+                            else:
+                                rle = [ann_segm, ]
 
-                        ann_mask_binary = mask_util.decode(rle).squeeze().astype(bool)
-                        # ann_mask = ann_mask_binary.astype(np.uint8)
+                            ann_mask_binary = mask_util.decode(rle).squeeze().astype(bool)
+                            # ann_mask = ann_mask_binary.astype(np.uint8)
 
-                    ann_mask_img = np.zeros_like(ann_img)
+                        ann_mask_img = np.zeros_like(ann_img)
 
-                    ann_mask_img[ann_mask_binary] = col_bgr[col]
+                        ann_mask_img[ann_mask_binary] = col_bgr[col]
 
-                    # ann_mask_vis = resize_ar(ann_mask_img, width=1280, height=720)
-                    # cv2.imshow('ann_mask', ann_mask_vis)
-                    # cv2.waitKey(0)
+                        # ann_mask_vis = resize_ar(ann_mask_img, width=1280, height=720)
+                        # cv2.imshow('ann_mask', ann_mask_vis)
+                        # cv2.waitKey(0)
 
-                    ann_img[ann_mask_binary] = (params.alpha * ann_img[ann_mask_binary] +
-                                                (1 - params.alpha) * ann_mask_img[ann_mask_binary])
-                else:
-                    drawBox(ann_img, np.asarray(ann_bbox), color=col, xywh=True)
+                        ann_img[ann_mask_binary] = (params.alpha * ann_img[ann_mask_binary] +
+                                                    (1 - params.alpha) * ann_mask_img[ann_mask_binary])
+                    if params.enable_mask != 2:
+                        xmin, ymin, gt_w, gt_h = ann_bbox
+                        xmax, ymax = xmin + gt_w, ymin + gt_h
+                        drawBox(ann_img, xmin, ymin, xmax, ymax, box_color=col_bgr[col])
 
             ann_img = ann_img.astype(np.uint8)
 
@@ -867,12 +877,6 @@ def run(params, *argv):
                 zip(pred_scores, pred_bboxes, pred_segms, category_ids, pred_global_ids)):
 
             n_all_objs += 1
-            # print(f'pred_id: {pred_id}')
-
-            # pred_score = pred['score']
-            # pred_bbox = pred['bbox']
-            # pred_segm = pred['segmentation']
-            # category_id = pred['category_id']
 
             label = category_id_to_label[category_id]
             col = class_name_to_col[label]
@@ -949,8 +953,12 @@ def run(params, *argv):
                     pred_mask_img[mask] = col_bgr[col]
                     pred_img[mask] = (params.alpha * pred_img[mask] +
                                       (1 - params.alpha) * pred_mask_img[mask])
-                else:
-                    drawBox(pred_img, np.asarray(bbox), color=col, xywh=True)
+
+                if params.enable_mask != 2:
+                    xmin, ymin, det_w, det_h = bbox
+                    xmax, ymax = xmin + det_w, ymin + det_h
+                    drawBox(pred_img, xmin, ymin, xmax, ymax, box_color=col_bgr[col],
+                            label= f'{global_id}:{score:.2f}', font_size=0.6)
 
             xmin, ymin, w, h = bbox
 
@@ -976,6 +984,7 @@ def run(params, *argv):
                     "YMin": ymin,
                     "YMax": ymax,
                     "Confidence": score,
+                    "global_id": global_id,
                 }
                 if params.enable_mask:
                     row.update(
@@ -998,7 +1007,11 @@ def run(params, *argv):
 
         # print('here we are')
         if vis:
-            cat_img = np.concatenate((ann_img, pred_img), axis=1)
+            if ann_df.empty:
+                cat_img = pred_img
+            else:
+                cat_img = np.concatenate((ann_img, pred_img), axis=1)
+
             if params.save:
                 cv2.imwrite(out_vis_path, cat_img)
 
@@ -1011,6 +1024,7 @@ def run(params, *argv):
         csv_columns = [
             "ImageID", "LabelName",
             "XMin", "XMax", "YMin", "YMax", "Confidence",
+            "global_id"
         ]
         if params.enable_mask:
             csv_columns += ['mask_w', 'mask_h', 'mask_counts']

@@ -10,7 +10,7 @@ import subprocess
 import time
 import shutil
 import logging
-import glob, argparse
+import glob
 import pandas as pd
 import shlex
 
@@ -171,7 +171,7 @@ class MainWindow(QMainWindow, WindowMixin):
         if params.root_dir:
             default_filename = linux_path(params.root_dir, default_filename)
 
-        default_prefdef_class_file = self.params.predef_class_file
+        default_prefdef_class_file = self.params.class_file
         load_prev = self.params.load_prev
 
         hed_model_path = params.mask.hed_model_path
@@ -1126,6 +1126,9 @@ class MainWindow(QMainWindow, WindowMixin):
         text = self.labelDialog.popUp(item.text())
         if text is not None:
             item.setText(text)
+            if text not in self.labelHist:
+                self.labelHist.append(text)
+
             self.setDirty()
 
     # Tzutalin 20160906 : Add file list and dock to move faster
@@ -1217,6 +1220,9 @@ class MainWindow(QMainWindow, WindowMixin):
             mask, mask_img, parents, children in shapes:
             shape = Shape(label=label, bbox_source=bbox_source, id_number=id_number,
                           score=score, mask=mask, mask_img=mask_img, parents=parents, children=children)
+            if label not in self.labelHist:
+                self.labelHist.append(label)
+
             for x, y in points:
                 shape.addPoint(QPointF(x, y))
             shape.difficult = difficult
@@ -2464,7 +2470,7 @@ class MainWindow(QMainWindow, WindowMixin):
                 for line in f:
                     line = line.strip()
                     if self.labelHist is None:
-                        self.lablHist = [line]
+                        self.labelHist = [line]
                     else:
                         self.labelHist.append(line)
 
@@ -3745,7 +3751,7 @@ class MainWindow(QMainWindow, WindowMixin):
     class Params:
         """
         :type cfg: str
-        :type predef_class_file: str
+        :type class_file: str
         :type file_name: str
         :type load_prev: int
         :type verbose: int | bool
@@ -3763,7 +3769,7 @@ class MainWindow(QMainWindow, WindowMixin):
             self.load_prev = 1
             self.root_dir = ''
             self.file_name = ''
-            self.predef_class_file = 'data/predefined_classes_cell.txt'
+            self.class_file = 'data/classes/cell.txt'
             self.verbose = 0
 
             self.max_boxes = 0

@@ -12,10 +12,11 @@ from Utilities import drawRegion, drawBox, col_rgb, CVConstants
 try:
     import pyMTF
 
-    mtf_available = 1
 except ImportError as e:
-    print('MTF unavailable: {}'.format(e))
     mtf_available = 0
+else:
+    print('MTF is available !')
+    mtf_available = 1
 
 from siamfc.SiamFC import SiamFC, SiamFCParams
 from SiamMask.SiamMask import SiamMask, SiamMaskParams
@@ -51,7 +52,6 @@ class PatchTrackerParams:
     """
 
     def __init__(self):
-
         self.tracker_type = '2'
         self.mtf_cfg_dir = 'tracking/cfg/mtf'
         self.cv_tracker_type = 0
@@ -421,7 +421,7 @@ class PatchTracker:
             if self._params.show_mask:
                 if self._params.resize_factor != 1:
                     mask_disp = cv2.resize(mask, (0, 0), fx=self._params.resize_factor,
-                                      fy=self._params.resize_factor)
+                                           fy=self._params.resize_factor)
                 else:
                     mask_disp = mask
 

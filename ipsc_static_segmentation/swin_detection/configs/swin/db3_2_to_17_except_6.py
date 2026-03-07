@@ -146,9 +146,12 @@ data = dict(
     samples_per_gpu=1,
     workers_per_gpu=0,
     train=dict(
+        type='MojowRocksSyn',
+        img_prefix=data_root,
         ann_file=data_root + 'db3_2_to_17_except_6.json',
         pipeline=train_pipeline),
     val=dict(
+        type='MojowRocksSyn',
         ann_file=data_root + 'db3_2_to_17_except_6-val.json',
         img_prefix=data_root,
     ),

@@ -162,7 +162,7 @@ class TridentBottleneck(Bottleneck):
             ]
             return out
 
-        if self.with_cp and x.requires_grad:
+        if self.use_checkpoint and x.requires_grad:
             out = cp.checkpoint(_inner_forward, x)
         else:
             out = _inner_forward(x)
@@ -214,7 +214,7 @@ def make_trident_res_layer(block,
                 trident_dilations=trident_dilations,
                 downsample=downsample if i == 0 else None,
                 style=style,
-                use_checkpoint=with_cp,
+                use_checkpoint=use_checkpoint,
                 conv_cfg=conv_cfg,
                 norm_cfg=norm_cfg,
                 dcn=dcn,
@@ -276,7 +276,7 @@ class TridentResNet(ResNet):
             stride=stride,
             trident_dilations=dilation,
             style=self.style,
-            use_checkpoint=self.with_cp,
+            use_checkpoint=self.use_checkpoint,
             conv_cfg=self.conv_cfg,
             norm_cfg=self.norm_cfg,
             dcn=dcn,

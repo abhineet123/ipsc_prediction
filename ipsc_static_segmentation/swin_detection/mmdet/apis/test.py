@@ -26,6 +26,8 @@ def single_gpu_test(model,
                     out_dir,
                     show_score_thr,
                     filter_objects,
+                    pool,
+                    set_zero,
                     ):
     assert out_dir is not None, "out_dir must be provided"
 
@@ -75,7 +77,7 @@ def single_gpu_test(model,
     pbar = tqdm(data_loader, total=n_data_loader)
     for batch_id, data in enumerate(pbar):
         with torch.no_grad():
-            result = model(return_loss=False, rescale=True, **data)
+            result = model(return_loss=False, rescale=True, pool=pool, set_zero=set_zero, **data)
 
         batch_size = len(result)
         if batch_size == 1 and isinstance(data['img'][0], torch.Tensor):
@@ -116,9 +118,12 @@ def single_gpu_test(model,
 
                 seq_name_to_paths[seq_name] = (seq_out_dir, seq_mask_out_dir, seq_xml_out_dir, out_csv_path)
 
-                os.makedirs(seq_out_dir, exist_ok=1)
-                os.makedirs(seq_mask_out_dir, exist_ok=1)
-                os.makedirs(seq_xml_out_dir, exist_ok=1)
+                if write_xml:
+                    os.makedirs(seq_out_dir, exist_ok=1)
+                    os.makedirs(seq_mask_out_dir, exist_ok=1)
+
+                if write_masks:
+                    os.makedirs(seq_xml_out_dir, exist_ok=1)
 
                 seq_to_csv_rows[out_csv_path] = []
                 """write header to csv file"""

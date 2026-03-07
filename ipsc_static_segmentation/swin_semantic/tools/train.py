@@ -1,9 +1,16 @@
+import sys
+import os
+
+dproc_path = os.path.join(os.path.expanduser("~"), "ipsc/ipsc_static_segmentation/swin_semantic")
+sys.path.append(dproc_path)
+
+
 import argparse
 import copy
-import os
 import os.path as osp
 import time
 from datetime import datetime
+
 
 import torch
 

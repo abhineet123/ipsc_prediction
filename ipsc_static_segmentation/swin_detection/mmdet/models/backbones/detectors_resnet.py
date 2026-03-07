@@ -96,7 +96,7 @@ class Bottleneck(_Bottleneck):
 
             return out
 
-        if self.with_cp and x.requires_grad:
+        if self.use_checkpoint and x.requires_grad:
             out = cp.checkpoint(_inner_forward, x)
         else:
             out = _inner_forward(x)
@@ -260,7 +260,7 @@ class DetectoRS_ResNet(ResNet):
                 dilation=dilation,
                 style=self.style,
                 avg_down=self.avg_down,
-                use_checkpoint=self.with_cp,
+                use_checkpoint=self.use_checkpoint,
                 conv_cfg=self.conv_cfg,
                 norm_cfg=self.norm_cfg,
                 dcn=dcn,

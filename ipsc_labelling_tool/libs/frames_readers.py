@@ -159,7 +159,7 @@ class VideoReader(FramesReader):
                     pass
 
         if index != self.last_frame_read + 1:
-            self.vidcap.set(1, index)
+            self.vidcap.set(cv2.CAP_PROP_POS_FRAMES, index)
         success, image = self.vidcap.read()
         if not success:
             raise IOError('Frame {:d} could not be read'.format(index + 1))

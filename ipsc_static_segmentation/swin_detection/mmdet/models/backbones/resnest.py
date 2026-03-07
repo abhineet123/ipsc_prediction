@@ -259,7 +259,7 @@ class Bottleneck(_Bottleneck):
 
             return out
 
-        if self.with_cp and x.requires_grad:
+        if self.use_checkpoint and x.requires_grad:
             out = cp.checkpoint(_inner_forward, x)
         else:
             out = _inner_forward(x)

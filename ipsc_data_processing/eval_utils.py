@@ -1,9 +1,12 @@
 import operator
 import os
 import sys
-import traceback
+import json
 import logging
+import multiprocessing
 
+import shutil
+import random
 import cv2
 import numpy as np
 import pandas as pd
@@ -16,7 +19,7 @@ from io import StringIO
 from PIL import Image
 
 import matplotlib.pyplot as plt
-from sklearn.metrics import auc, roc_auc_score, roc_curve
+from sklearn.metrics import auc, roc_curve
 from tabulate import tabulate
 
 import pycocotools.mask as mask_util
@@ -175,8 +178,116 @@ col_bgr = {
     'medium_purple': (219, 112, 147),
     'thistle': (216, 191, 216),
     'green': (0, 255, 0),
-    'magenta': (255, 0, 255)
+    'magenta': (255, 0, 255),
+    '133_200_166': (133, 200, 166),
+    '200_100_100': (200, 100, 100),
+    '200_166_100': (200, 166, 100),
+    '166_200_100': (166, 200, 100),
+    '200_200_200': (200, 200, 200),
+    '166_133_133': (166, 133, 133),
+    '133_133_133': (133, 133, 133),
+    '100_100_100': (100, 100, 100),
+    '100_100_133': (100, 100, 133),
+    '166_100_200': (166, 100, 200),
+    '200_166_133': (200, 166, 133),
+    '133_200_133': (133, 200, 133),
+    '166_166_166': (166, 166, 166),
+    '166_133_166': (166, 133, 166),
+    '133_100_100': (133, 100, 100),
+    '100_200_200': (100, 200, 200),
+    '166_200_166': (166, 200, 166),
+    '166_200_133': (166, 200, 133),
+    '100_166_166': (100, 166, 166),
+    '166_133_200': (166, 133, 200),
+    '133_200_100': (133, 200, 100),
+    '133_166_200': (133, 166, 200),
+    '100_200_166': (100, 200, 166),
+    '200_133_200': (200, 133, 200),
+    '133_166_133': (133, 166, 133),
+    '100_100_166': (100, 100, 166),
+    '166_166_100': (166, 166, 100),
+    '166_100_166': (166, 100, 166),
+    '200_166_200': (200, 166, 200),
+    '200_100_133': (200, 100, 133),
 }
+
+bgr_col = {col_num: col_name for col_name, col_num in col_bgr.items()}
+
+import traceback
+
+
+class Process(multiprocessing.Process):
+    def __init__(self, *args, **kwargs):
+        multiprocessing.Process.__init__(self, *args, **kwargs)
+        self._pconn, self._cconn = multiprocessing.Pipe()
+        self._exception = None
+
+    def run(self):
+        try:
+            multiprocessing.Process.run(self)
+            self._cconn.send(None)
+        except Exception as e:
+            tb = traceback.format_exc()
+            self._cconn.send((e, tb))
+            raise e
+
+    @property
+    def exception(self):
+        if self._pconn.poll():
+            self._exception = self._pconn.recv()
+        return self._exception
+
+
+def list_to_str(k):
+    return '\n'.join(k)
+
+
+def zip_dirs(agn_root_dirs, del_src=1):
+    if len(agn_root_dirs) > 1:
+        agn_prefix = os.path.commonpath(agn_root_dirs)
+    else:
+        agn_prefix = os.path.dirname(agn_root_dirs[0])
+
+    assert agn_prefix not in agn_root_dirs, "agn_prefix cannot be same as an agn_root_dir"
+
+    agn_rel_dirs = [os.path.relpath(k, agn_prefix) for k in agn_root_dirs]
+    agn_rel_dirs.sort()
+
+    switches = '-r -q'
+    in_paths = ' '.join(agn_rel_dirs)
+    out_path = agn_prefix + '.zip'
+    out_path = os.path.abspath(out_path)
+    zip_cmd = f'cd {agn_prefix} && zip {switches} {out_path} {in_paths}'
+    print(f'{zip_cmd}')
+    os.system(zip_cmd)
+
+    if os.path.exists(out_path):
+        from zipfile import ZipFile, Path
+        list_zip_file = ZipFile(out_path, 'r')
+        zip_subdirs = [k.name for k in Path(list_zip_file).iterdir() if k.is_dir()]
+        zip_subdirs.sort()
+
+        assert zip_subdirs == agn_rel_dirs, "zip_subdirs mismatch"
+
+        if del_src:
+            for agn_root_dir in agn_root_dirs:
+                shutil.rmtree(agn_root_dir)
+        print()
+
+    if del_src and not os.listdir(agn_prefix):
+        shutil.rmtree(agn_prefix)
+
+    return out_path
+
+
+def sleep_with_pbar(sleep_mins):
+    for _ in tqdm(range(sleep_mins), desc='sleeping', ncols=50):
+        try:
+            time.sleep(60)
+        except KeyboardInterrupt:
+            print('sleep interrupted')
+            return False
+    return True
 
 
 def print_stats(stats, name='', fmt='.3f'):
@@ -185,12 +296,12 @@ def print_stats(stats, name='', fmt='.3f'):
     print(tabulate(stats, headers='keys', tablefmt="orgtbl", floatfmt=fmt))
 
 
-def put_text_with_background(img, text, loc, col, bgr_col, **kwargs):
+def put_text_with_background(img, text, loc, col, bkg_col, **kwargs):
     text_offset_x, text_offset_y = loc
 
     (text_width, text_height) = cv2.getTextSize(text, **kwargs)[0]
     box_coords = ((text_offset_x, text_offset_y + 5), (text_offset_x + text_width, text_offset_y - text_height))
-    cv2.rectangle(img, box_coords[0], box_coords[1], bgr_col, cv2.FILLED)
+    cv2.rectangle(img, box_coords[0], box_coords[1], bkg_col, cv2.FILLED)
 
     cv2.putText(img, text, org=loc, color=col, **kwargs)
 
@@ -220,19 +331,17 @@ def clamp(_vals, min_val, max_val):
     return [max(min(_val, max_val), min_val) for _val in _vals]
 
 
-def drawBox(image, xmin, ymin, xmax, ymax, box_color=(0, 255, 0), label=None, font_size=0.3, mask=None):
-    # if cv2.__version__.startswith('3'):
-    #     font_line_type = cv2.LINE_AA
-    # else:
-    #     font_line_type = cv2.CV_AA
-
+def drawBox(image, xmin, ymin, xmax, ymax, box_color=(0, 255, 0), label=None, font_size=0.3, mask=None, thickness=2):
     image_float = image.astype(np.float32)
+
+    if isinstance(box_color, str):
+        box_color = col_bgr[box_color]
 
     if mask is not None:
         mask_pts = np.asarray(mask).reshape((-1, 1, 2)).astype(np.int32)
-        cv2.drawContours(image_float, mask_pts, -1, box_color, thickness=2, lineType=cv2.LINE_AA)
+        cv2.drawContours(image_float, mask_pts, -1, box_color, thickness=thickness, lineType=cv2.LINE_AA)
     else:
-        cv2.rectangle(image_float, (int(xmin), int(ymin)), (int(xmax), int(ymax)), box_color)
+        cv2.rectangle(image_float, (int(xmin), int(ymin)), (int(xmax), int(ymax)), box_color, thickness=thickness)
 
     image[:] = image_float.astype(image.dtype)
 
@@ -246,8 +355,375 @@ def drawBox(image, xmin, ymin, xmax, ymax, box_color=(0, 255, 0), label=None, fo
                     font_size, box_color, 1, cv2.LINE_AA)
 
 
+def resize_ar_tf_api(src_img, width=0, height=0, return_factors=0, add_border=1, crop=0):
+    src_height, src_width, n_channels = src_img.shape
+
+    src_aspect_ratio = float(src_width) / float(src_height)
+
+    if width <= 0 and height <= 0:
+        raise AssertionError(
+            'Both width and height cannot be 0 when resize_factor is 0 too')
+    elif height <= 0:
+        height = int(width / src_aspect_ratio)
+    elif width <= 0:
+        width = int(height * src_aspect_ratio)
+
+    aspect_ratio = float(width) / float(height)
+
+    if add_border == 2:
+        assert src_height <= height and src_width <= width, \
+            f"border only mode :: source size {src_width} x {src_height} > target size {width} x {height}"
+
+        dst_img = np.zeros((height, width, n_channels), dtype=np.uint8)
+        start_row = int((height - src_height) / 2.0)
+        start_col = int((width - src_width) / 2.0)
+        end_row = start_row + src_height
+        end_col = start_col + src_width
+        dst_img[start_row:end_row, start_col:end_col, :] = src_img
+        if return_factors:
+            return dst_img, 1, start_row, start_col
+        else:
+            return dst_img
+
+    if add_border:
+        if src_aspect_ratio == aspect_ratio:
+            dst_width = src_width
+            dst_height = src_height
+            start_row = start_col = 0
+        elif src_aspect_ratio > aspect_ratio:
+            dst_width = src_width
+            dst_height = int(src_width / aspect_ratio)
+            start_row = int((dst_height - src_height) / 2.0)
+            start_col = 0
+        else:
+            dst_height = src_height
+            dst_width = int(src_height * aspect_ratio)
+            start_col = int((dst_width - src_width) / 2.0)
+            start_row = 0
+
+        end_row = start_row + src_height
+        end_col = start_col + src_width
+        dst_img = np.zeros((dst_height, dst_width, n_channels), dtype=np.uint8)
+        dst_img[start_row:end_row, start_col:end_col, :] = src_img
+        dst_img = cv2.resize(dst_img, (width, height))
+
+        resize_factor = float(height) / float(dst_height)
+
+        if crop:
+            start_col_res = int(start_col * resize_factor)
+            start_row_res = int(start_row * resize_factor)
+            end_row_res = int(end_row * resize_factor)
+            end_col_res = int(end_col * resize_factor)
+            dst_img = dst_img[start_row_res:end_row_res, start_col_res:end_col_res, :]
+
+            start_col = start_row = 0
+
+        if return_factors:
+            return dst_img, resize_factor, start_row, start_col
+        else:
+            return dst_img
+    else:
+        if src_aspect_ratio < aspect_ratio:
+            dst_width = width
+            dst_height = int(dst_width / src_aspect_ratio)
+        else:
+            dst_height = height
+            dst_width = int(dst_height * src_aspect_ratio)
+        dst_img = cv2.resize(src_img, (dst_width, dst_height))
+        start_row = start_col = 0
+        if return_factors:
+            resize_factor = float(src_height) / float(dst_height)
+            return dst_img, resize_factor, start_row, start_col
+        else:
+            return dst_img
+
+
+def annotate(
+        img_list,
+        img_labels,
+        text=None,
+        fmt=None,
+        grid_size=(-1, 1),
+):
+    """
+
+    :param np.ndarray | list | tuple img_list:
+    :param str text:
+    :param CVText fmt:
+    :param tuple(int) grid_size:
+    :return:
+    """
+
+    if not isinstance(img_list, (list, tuple)):
+        img_list = [img_list, ]
+
+    if not isinstance(img_labels, (list, tuple)):
+        img_labels = [img_labels, ]
+
+    assert len(img_labels) == len(img_list), "img_labels and img_list must have same length"
+
+    if fmt is None:
+        """use default format"""
+        fmt = CVText()
+
+    size = fmt.size
+
+    color = col_bgr[fmt.color]
+    font = CVConstants.fonts[fmt.font]
+    line_type = CVConstants.line_types[fmt.line_type]
+
+    out_img_list = []
+
+    for _id, _img in enumerate(img_list):
+        if len(_img.shape) == 2:
+            _img = np.stack([_img, ] * 3, axis=2)
+
+        img_label = img_labels[_id]
+        (text_width, text_height) = cv2.getTextSize(
+            img_label, font,
+            fontScale=fmt.size,
+            thickness=fmt.thickness)[0]
+
+        text_height += fmt.offset[1]
+        text_width += fmt.offset[0]
+        label_img = np.zeros((text_height, text_width), dtype=np.uint8)
+        cv2.putText(label_img, img_label, tuple(fmt.offset),
+                    font, size, color, fmt.thickness, line_type)
+
+        if len(_img.shape) == 3:
+            label_img = np.stack([label_img, ] * 3, axis=2)
+
+        if text_width < _img.shape[1]:
+            label_img = resize_ar(label_img, width=_img.shape[1], height=text_height,
+                                  only_border=2, placement_type=1)
+
+        # border_img = np.full((5, _img.shape[0], 3), 255, dtype=np.uint8)
+        img_list_label = [label_img,
+                          # border_img,
+                          _img]
+
+        _img = stack_images(img_list_label, grid_size=(-1, 1), preserve_order=1)
+
+        # border_img = np.full((_img.shape[1], 5, 3), 255, dtype=np.uint8)
+        # _img = stack_images([_img, border_img], grid_size=(1, -1), preserve_order=1)
+
+        out_img_list.append(_img)
+
+    img_stacked = stack_images(out_img_list, grid_size=grid_size, preserve_order=1)
+
+    if text is not None:
+        if '\n' in text:
+            text_list = text.split('\n')
+        else:
+            text_list = [text, ]
+
+        max_text_width = 0
+        text_height = 0
+        text_heights = []
+
+        for _text in text_list:
+            (_text_width, _text_height) = cv2.getTextSize(_text, font, fontScale=fmt.size, thickness=fmt.thickness)[0]
+            if _text_width > max_text_width:
+                max_text_width = _text_width
+            text_height += _text_height + 5
+            text_heights.append(_text_height)
+
+        text_width = max_text_width + 10
+        text_height += 30
+
+        text_img = np.zeros((text_height, text_width, 3), dtype=np.uint8)
+        location = list(fmt.offset)
+
+        for _id, _text in enumerate(text_list):
+            cv2.putText(text_img, _text, tuple(location), font, size, color, fmt.thickness, line_type)
+            location[1] += text_heights[_id] + 5
+
+        if text_width < img_stacked.shape[1]:
+            text_img = resize_ar(text_img, width=img_stacked.shape[1], height=text_height,
+                                 only_border=2, placement_type=1)
+
+        border_img = np.full((5, img_stacked.shape[1], 3), 255, dtype=np.uint8)
+
+        img_list_txt = [text_img, border_img, img_stacked]
+
+        img_stacked = stack_images_with_resize(img_list_txt, grid_size=(-1, 1), preserve_order=1)
+
+    return img_stacked
+
+
+def get_video_out(video_out_dict, vis_out_fnames, vis_type, vis_video, save_h, save_w, fourcc, fps):
+    all_video_out = video_out_dict[vis_type]
+    if all_video_out is None:
+        vis_out_fname = vis_out_fnames[vis_type]
+        _save_dir = os.path.dirname(vis_out_fname)
+
+        if _save_dir and not os.path.isdir(_save_dir):
+            os.makedirs(_save_dir)
+
+        if vis_video:
+            video_h, video_w = save_h, save_w
+            all_video_out = cv2.VideoWriter(vis_out_fname, fourcc, fps, (video_w, video_h))
+        else:
+            all_video_out = ImageSequenceWriter(vis_out_fname, verbose=0)
+
+        if not all_video_out:
+            raise AssertionError(
+                f'video file: {vis_out_fname} could not be opened for writing')
+
+        video_out_dict[vis_type] = all_video_out
+    return all_video_out
+
+
+def draw_and_concat(src_img, frame_det_data, frame_gt_data, class_name_to_col, vis_alpha, vis_w, vis_h,
+                    vert_stack, check_det, img_id, mask=True, return_list=False, cls_cat_to_col=None):
+    dets_vis_img, resize_factor, _, _ = resize_ar_tf_api(src_img, vis_w, vis_h, crop=1, return_factors=1)
+    gt_vis_img = resize_ar_tf_api(src_img, vis_w, vis_h, crop=1, return_factors=0)
+
+    dets_vis_img = draw_objs(dets_vis_img, frame_det_data, vis_alpha, class_name_to_col, check_bb=check_det,
+                             thickness=1, mask=mask, bb_resize=resize_factor, cls_cat_to_col=cls_cat_to_col)
+    gt_vis_img = draw_objs(gt_vis_img, frame_gt_data, vis_alpha, class_name_to_col, thickness=1, mask=mask,
+                           bb_resize=resize_factor, cls_cat_to_col=cls_cat_to_col)
+
+    if return_list:
+        return [gt_vis_img, dets_vis_img]
+
+    cat_img_vis = annotate((gt_vis_img, dets_vis_img), text=f'{img_id}', img_labels=['GT', 'Detections'],
+                           grid_size=(-1, 1) if vert_stack else (1, -1))
+
+    # cv2.imshow('dets_vis_img', dets_vis_img)
+    # cv2.imshow('gt_vis_img', gt_vis_img)
+    # cv2.imshow('cat_img_vis', cat_img_vis)
+    # cv2.waitKey(0)
+
+    # cat_img_vis = np.concatenate((gt_vis_img, dets_vis_img), axis=0 if vert_stack else 1)
+
+    return cat_img_vis
+
+
+def stack_images(img_list, grid_size=None, stack_order=0, borderless=1,
+                 preserve_order=0, return_idx=0,
+                 only_height=0, placement_type=0):
+    n_images = len(img_list)
+
+    if grid_size is None or not grid_size:
+        n_cols = n_rows = int(np.ceil(np.sqrt(n_images)))
+    else:
+        n_rows, n_cols = grid_size
+
+        if n_rows < 0:
+            n_rows = int(np.ceil(n_images / n_cols))
+        elif n_cols < 0:
+            n_cols = int(np.ceil(n_images / n_rows))
+
+    target_ar = 1920.0 / 1080.0
+    if n_cols <= n_rows:
+        target_ar /= 2.0
+    shape_img_id = 0
+    min_ar_diff = np.inf
+    img_heights = np.zeros((n_images,), dtype=np.int32)
+    for _img_id in range(n_images):
+        height, width = img_list[_img_id].shape[:2]
+        img_heights[_img_id] = height
+        img_ar = float(n_cols * width) / float(n_rows * height)
+        ar_diff = abs(img_ar - target_ar)
+        if ar_diff < min_ar_diff:
+            min_ar_diff = ar_diff
+            shape_img_id = _img_id
+
+    img_heights_sort_idx = np.argsort(-img_heights)
+    row_start_idx = img_heights_sort_idx[:n_rows]
+    img_idx = img_heights_sort_idx[n_rows:]
+    img_size = img_list[shape_img_id].shape
+    height, width = img_size[:2]
+
+    if only_height:
+        width = 0
+
+    stacked_img = None
+    list_ended = False
+    img_idx_id = 0
+    inner_axis = 1 - stack_order
+    stack_idx = []
+    stack_locations = []
+    start_row = 0
+    # curr_ann = ''
+    for row_id in range(n_rows):
+        start_id = n_cols * row_id
+        curr_row = None
+        start_col = 0
+        for col_id in range(n_cols):
+            img_id = start_id + col_id
+            if img_id >= n_images:
+                curr_img = np.zeros(img_size, dtype=np.uint8)
+                list_ended = True
+            else:
+                if preserve_order:
+                    _curr_img_id = img_id
+                elif col_id == 0:
+                    _curr_img_id = row_start_idx[row_id]
+                else:
+                    _curr_img_id = img_idx[img_idx_id]
+                    img_idx_id += 1
+
+                curr_img = img_list[_curr_img_id]
+                stack_idx.append(_curr_img_id)
+                if not borderless:
+                    curr_img = resize_ar(curr_img, width, height)
+                if img_id == n_images - 1:
+                    list_ended = True
+            if curr_row is None:
+                curr_row = curr_img
+            else:
+                if borderless:
+                    if curr_row.shape[0] < curr_img.shape[0]:
+                        curr_row = resize_ar(curr_row, 0, curr_img.shape[0])
+                    elif curr_img.shape[0] < curr_row.shape[0]:
+                        curr_img = resize_ar(curr_img, 0, curr_row.shape[0])
+                curr_row = np.concatenate((curr_row, curr_img), axis=inner_axis)
+
+            curr_h, curr_w = curr_img.shape[:2]
+            stack_locations.append((start_row, start_col, start_row + curr_h, start_col + curr_w))
+            start_col += curr_w
+
+        if stacked_img is None:
+            stacked_img = curr_row
+        else:
+            if borderless:
+                resize_factor = float(curr_row.shape[1]) / float(stacked_img.shape[1])
+                if curr_row.shape[1] < stacked_img.shape[1]:
+                    curr_row = resize_ar(curr_row, stacked_img.shape[1], 0, placement_type=placement_type)
+                elif curr_row.shape[1] > stacked_img.shape[1]:
+                    stacked_img = resize_ar(stacked_img, curr_row.shape[1], 0)
+
+                new_start_col = 0
+                for _i in range(n_cols):
+                    _start_row, _start_col, _end_row, _end_col = stack_locations[_i - n_cols]
+                    _w, _h = _end_col - _start_col, _end_row - _start_row
+                    w_resized, h_resized = _w / resize_factor, _h / resize_factor
+                    stack_locations[_i - n_cols] = (
+                        _start_row, new_start_col, _start_row + h_resized, new_start_col + w_resized)
+                    new_start_col += w_resized
+            stacked_img = np.concatenate((stacked_img, curr_row), axis=stack_order)
+
+        curr_h, curr_w = curr_row.shape[:2]
+        start_row += curr_h
+
+        if list_ended:
+            break
+    if return_idx:
+        return stacked_img, stack_idx, stack_locations
+    else:
+        return stacked_img
+
+
+def resize_ar_video(src_vid, **kwargs):
+    out_imgs = [resize_ar(img, **kwargs) for img in src_vid]
+    out_vid = np.stack(out_imgs, axis=0)
+    return out_vid
+
+
 def resize_ar(src_img, width=0, height=0, return_factors=False,
-              placement_type=0, only_border=0, only_shrink=0):
+              placement_type=1, only_border=0, only_shrink=0, strict=False, white_bkg=0):
     src_height, src_width = src_img.shape[:2]
     src_aspect_ratio = float(src_width) / float(src_height)
 
@@ -274,6 +750,9 @@ def resize_ar(src_img, width=0, height=0, return_factors=False,
             width = int(height * src_aspect_ratio)
 
     aspect_ratio = float(width) / float(height)
+
+    if strict:
+        assert aspect_ratio == src_aspect_ratio, "aspect_ratio mismatch"
 
     if only_border:
         dst_width = width
@@ -321,7 +800,12 @@ def resize_ar(src_img, width=0, height=0, return_factors=False,
                 raise AssertionError('Invalid placement_type: {}'.format(placement_type))
             start_row = 0
 
-    dst_img = np.zeros((dst_height, dst_width, n_channels), dtype=src_img.dtype)
+    if white_bkg:
+        dst_img = np.full((dst_height, dst_width, n_channels),
+                          255 if src_img.dtype == np.uint8 else 1.0,
+                          dtype=src_img.dtype)
+    else:
+        dst_img = np.zeros((dst_height, dst_width, n_channels), dtype=src_img.dtype)
     dst_img = dst_img.squeeze()
 
     dst_img[start_row:start_row + src_height, start_col:start_col + src_width, ...] = src_img
@@ -740,24 +1224,495 @@ def annotate_and_show(title, img_list, text=None, pause=1,
     return pause
 
 
+from contextlib import contextmanager
+import time
+
+
+@contextmanager
+def profile(_id, _times=None, _rel_times=None, enable=1, show=1, _fps=None):
+    """
+
+    :param _id:
+    :param dict _times:
+    :param int enable:
+    :return:
+    """
+    if not enable:
+        yield None
+
+    else:
+        start_t = time.time()
+        yield None
+        end_t = time.time()
+        _time = end_t - start_t
+
+        if show:
+            print(f'{_id} :: {_time}')
+
+        if _fps is not None:
+            if _time > 0:
+                _fps[_id] = 1.0 / _time
+            else:
+                _fps[_id] = np.inf
+
+        if _times is not None:
+
+            _times[_id] = _time
+
+            total_time = np.sum(list(_times.values()))
+
+            if _rel_times is not None:
+
+                for __id in _times:
+                    rel__time = _times[__id] / total_time
+                    _rel_times[__id] = rel__time
+
+
+def get_vis_size(src_img, mult, save_w, save_h, bottom_border):
+    temp_vis = np.concatenate((src_img,) * mult, axis=1)
+    temp_vis_res = resize_ar_tf_api(temp_vis, save_w, save_h - bottom_border, crop=1)
+    temp_vis_h, temp_vis_w = temp_vis_res.shape[:2]
+
+    vis_h, vis_w = temp_vis_h, int(temp_vis_w / mult)
+
+    assert vis_h <= save_h and vis_w <= save_w, \
+        f"vis size {vis_w} x {vis_h} > save size {save_w} x {save_h}"
+
+    return vis_h, vis_w
+
+
+def print_with_time(*argv):
+    time_stamp = datetime.now().strftime("%y%m%d %H%M%S")
+    print(f'{time_stamp}:', *argv)
+
+
+def to_str(iter_, sep='\n'):
+    return sep.join(iter_)
+
+
+def num_to_words(num):
+    if num >= 1e12:
+        num_tril = num / 1e12
+        words = f'{num_tril:.1f}T'
+    elif num >= 1e9:
+        num_bil = num / 1e9
+        words = f'{num_bil:.1f}B'
+    elif num >= 1e6:
+        num_mil = num / 1e6
+        words = f'{num_mil:.1f}M'
+    elif num >= 1e3:
+        num_th = num / 1e3
+        words = f'{num_th:.1f}K'
+    else:
+        words = f'{num}'
+    return words
+
+
+def dets_to_imagenet_vid(seq_det_bboxes_list, imagenet_vid_out_path, seq_name,
+                         filename_to_frame_index, class_name_to_id):
+    imagenet_vid_rows = []
+    for det_bbox in seq_det_bboxes_list:
+        xmin_, ymin_, xmax_, ymax_ = det_bbox['bbox']
+        filename_ = seq_name + '/' + os.path.splitext(os.path.basename(det_bbox['filename']))[0]
+        class_name = det_bbox['class']
+        confidence_ = float(det_bbox['confidence'])
+
+        frame_index = int(filename_to_frame_index[filename_])
+        class_index = int(class_name_to_id[class_name])
+
+        obj_str = (f'{frame_index:d} {class_index:d} {confidence_:.4f} '
+                   f'{xmin_:.2f} {ymin_:.2f} {xmax_:.2f} {ymax_:.2f}')
+
+        imagenet_vid_rows.append(obj_str)
+
+    with open(imagenet_vid_out_path, "a") as fid:
+        fid.write('\n'.join(imagenet_vid_rows))
+
+
+def dets_to_csv(seq_det_bboxes_list, det_path, enable_mask,
+                vid_nms_thresh, nms_thresh, class_agnostic):
+    out_csv_rows = []
+    for det_bbox in seq_det_bboxes_list:
+        xmin_, ymin_, xmax_, ymax_ = det_bbox['bbox']
+        csv_row = {
+            "ImageID": det_bbox['filename'],
+            "LabelName": det_bbox['class'],
+            "XMin": xmin_,
+            "XMax": xmax_,
+            "YMin": ymin_,
+            "YMax": ymax_,
+            "Confidence": det_bbox['confidence'],
+        }
+        if enable_mask:
+            mask_rle = det_bbox['mask']
+            mask_h_, mask_w_ = mask_rle['size']
+            csv_row.update(
+                {
+                    "mask_w": mask_w_,
+                    "mask_h": mask_h_,
+                    "mask_counts": mask_rle['counts'],
+                }
+            )
+        out_csv_rows.append(csv_row)
+    det_dir, det_name = os.path.dirname(det_path), os.path.basename(det_path)
+
+    out_suffix = []
+    if vid_nms_thresh > 0:
+        out_suffix.append(f'vnms_{vid_nms_thresh:02d}')
+
+    if nms_thresh > 0:
+        out_suffix.append(f'nms_{nms_thresh:02d}')
+
+    if class_agnostic > 0:
+        out_suffix.append(f'agn')
+
+    if out_suffix:
+        out_suffix_str = '_'.join(out_suffix)
+        out_det_dir = add_suffix(det_dir, out_suffix_str)
+
+    os.makedirs(out_det_dir, exist_ok=True)
+    out_det_path = linux_path(out_det_dir, det_name)
+    csv_columns = [
+        "ImageID", "LabelName",
+        "XMin", "XMax", "YMin", "YMax", "Confidence",
+        'VideoID'
+    ]
+    if enable_mask:
+        csv_columns += ['mask_w', 'mask_h', 'mask_counts']
+    df = pd.DataFrame(out_csv_rows, columns=csv_columns)
+    print_(f'writing postproc results to {out_det_path}')
+    df.to_csv(out_det_path, index=False)
+
+
+def find_matching_obj_pairs(pred_obj_pairs, enable_mask, nms_thresh,
+                            # objs_to_delete=None, global_objs_to_delete=None
+                            ):
+    # if objs_to_delete is None:
+    #     objs_to_delete = []
+    #     assert global_objs_to_delete is None, "either both or neither of objs_to_delete must be None"
+    #     global_objs_to_delete = []
+
+    n_del = 0
+
+    for pair_id, pred_obj_pair in enumerate(pred_obj_pairs):
+        obj1, obj2 = pred_obj_pair
+
+        # local_id1, bbox1, mask1, score1, label1, vid_id1, global_id1 = obj1
+        # local_id2, bbox2, mask2, score2, label2, vid_id2, global_id2 = obj2
+
+        assert obj1['local_id'] != obj2['local_id'], "invalid obj pair with identical local IDs"
+
+        if obj1['to_delete'] or obj2['to_delete']:
+            continue
+
+        if enable_mask:
+            # pred_iou = get_mask_iou(obj1['mask'], obj2['mask'], obj1['bbox'], obj2['bbox'])
+            pred_iou = get_mask_rle_iou(obj1['mask'], obj2['mask']) * 100
+        else:
+            pred_iou = get_iou(obj1['bbox'], obj2['bbox'], xywh=False) * 100
+
+            # mask_iou2 = get_mask_iou(mask1, mask2, bbox1, bbox2, giou=False)
+            # assert pred_iou == mask_iou2, "mask_iou2 mismatch found"
+
+        if pred_iou >= nms_thresh:
+            n_del += 1
+            # print(f'found matching object pair with iou {pred_iou:.3f}')
+            if obj1['confidence'] > obj2['confidence']:
+                obj2['to_delete'] = 1
+
+                # objs_to_delete.append(obj2['local_id'])
+                # global_objs_to_delete.append(obj2['global_id'])
+
+                # print(f'removing obj {local_id2} with score {score2} < {score1}')
+            else:
+                obj1['to_delete'] = 1
+
+                # objs_to_delete.append(obj1['local_id'])
+                # global_objs_to_delete.append(obj1['global_id'])
+
+                # print(f'removing obj {local_id1} with score {score1} < {score2}')
+    # return objs_to_delete, global_objs_to_delete
+    return n_del
+
+
+def perform_batch_nms(objs, enable_mask, nms_thresh_all, vid_nms_thresh_all, dup, vis, **kwargs):
+    assert not enable_mask, "mask IOU is currently not supported in batch_nms"
+    assert nms_thresh_all or vid_nms_thresh_all, "either vid_nms_thresh_all or nms_thresh_all must be provided"
+
+    n_objs = len(objs)
+    obj_bboxes_arr = np.asarray([obj['bbox'] for obj in objs])
+    iou_arr = np.empty((n_objs, n_objs))
+    compute_overlaps_multi(iou_arr, None, None, obj_bboxes_arr, obj_bboxes_arr)
+    iou_arr *= 100
+
+    all_obj_ids = [obj['local_id'] for obj in objs]
+    id_to_bbox = {obj['local_id']: obj for obj in objs}
+    id_to_conf = {obj['local_id']: obj['confidence'] for obj in objs}
+
+    pred_obj_pairs = list(itertools.combinations(objs, 2))
+    pred_obj_pair_ids = [(obj1['local_id'], obj2['local_id']) for obj1, obj2 in pred_obj_pairs]
+
+    vid_pred_obj_pair_ids = None
+    if vid_nms_thresh_all:
+        vid_pred_obj_pair_ids = [(obj1['local_id'], obj2['local_id']) for obj1, obj2 in pred_obj_pairs
+                                 if obj1['video_id'] != obj2['video_id']]
+        if not dup:
+            pred_obj_pair_ids = [(obj1['local_id'], obj2['local_id']) for obj1, obj2 in pred_obj_pairs
+                                 if obj1['video_id'] == obj2['video_id']]
+    else:
+        vid_nms_thresh_all = [0, ]
+
+    if not nms_thresh_all:
+        nms_thresh_all = [0, ]
+
+    cmb_nms_thresh = list(set(vid_nms_thresh_all + nms_thresh_all))
+    is_overlapping = {}
+    for nms_thresh in cmb_nms_thresh:
+        if nms_thresh > 0:
+            is_overlapping[nms_thresh] = iou_arr >= nms_thresh
+
+    vid_del_obj_ids_dict = {}
+    for vid_nms_thresh in vid_nms_thresh_all:
+        vid_del_obj_ids = []
+        if vid_nms_thresh > 0:
+            is_overlapping_ = is_overlapping[vid_nms_thresh]
+            vid_del_obj_ids = [id2 if id_to_conf[id1] > id_to_conf[id2] else id1
+                               for id1, id2 in vid_pred_obj_pair_ids if is_overlapping_[id1, id2]]
+        vid_del_obj_ids_dict[vid_nms_thresh] = vid_del_obj_ids
+
+    del_obj_ids_dict = {}
+    for nms_thresh in nms_thresh_all:
+        del_obj_ids = []
+        if nms_thresh > 0:
+            is_overlapping_ = is_overlapping[nms_thresh]
+            del_obj_ids = [id2 if id_to_conf[id1] > id_to_conf[id2] else id1
+                           for id1, id2 in pred_obj_pair_ids if is_overlapping_[id1, id2]]
+        del_obj_ids_dict[nms_thresh] = del_obj_ids
+
+    thresh_to_filtered_objs = {}
+    nms_thresh_pairs = itertools.product(vid_nms_thresh_all, nms_thresh_all)
+    for vid_nms_thresh, nms_thresh in nms_thresh_pairs:
+        # if vid_nms_thresh == 0 and nms_thresh == 0:
+        #     continue
+        del_obj_ids = list(set(vid_del_obj_ids_dict[vid_nms_thresh] + del_obj_ids_dict[nms_thresh]))
+        keep_obj_ids = list(set(all_obj_ids) - set(del_obj_ids))
+        thresh_to_filtered_objs[(vid_nms_thresh, nms_thresh)] = [id_to_bbox[i] for i in keep_obj_ids]
+
+    if vis:
+        img_paths = [obj['file_path'] for obj in objs]
+        img_path = list(set(img_paths))
+        assert len(img_path) == 1, "multiple  img_paths"
+        img_path = img_path[0]
+        img = cv2.imread(img_path)
+
+        seq_name = os.path.basename(os.path.dirname(img_path))
+        img_name = os.path.basename(img_path)
+
+        img_vis_all = draw_objs(
+            img, objs,
+            title=f'{seq_name}-{img_name}-{len(objs)}',
+            show_class=True, **kwargs)
+        img_vis_all = resize_ar(img_vis_all, width=1800, height=1000)
+        cv2.imshow('img_vis_all', img_vis_all)
+
+        for (vid_nms_thresh, nms_thresh), filtered_objs in thresh_to_filtered_objs.items():
+            if vid_nms_thresh == 0 and nms_thresh == 0:
+                continue
+            img_vis_filtered = draw_objs(
+                img, filtered_objs,
+                title=f'{seq_name}-{img_name}-{vid_nms_thresh:02d}-{nms_thresh:02d}-{len(filtered_objs)}/{len(objs)}',
+                show_class=True,
+                **kwargs)
+            img_vis_filtered = resize_ar(img_vis_filtered, width=1800, height=1000)
+            cv2.imshow('img_vis_filtered', img_vis_filtered)
+            cv2.waitKey(0)
+
+    return thresh_to_filtered_objs
+
+
+def box_iou_batch(
+        boxes_a: np.ndarray, boxes_b: np.ndarray
+) -> np.ndarray:
+    def box_area(box):
+        return (box[2] - box[0]) * (box[3] - box[1])
+
+    area_a = box_area(boxes_a.T)
+    area_b = box_area(boxes_b.T)
+
+    top_left = np.maximum(boxes_a[:, None, :2], boxes_b[:, :2])
+    bottom_right = np.minimum(boxes_a[:, None, 2:], boxes_b[:, 2:])
+
+    area_inter = np.prod(
+        np.clip(bottom_right - top_left, a_min=0, a_max=None), 2)
+
+    return area_inter / (area_a[:, None] + area_b - area_inter)
+
+
+def perform_nms_fast(objs, enable_mask, iou_threshold):
+    assert not enable_mask, "fast nms does not support mask IOU"
+    iou_threshold /= 100.
+
+    obj_conf_arr = np.asarray([obj['confidence'] for obj in objs])
+    sort_index = np.flip(obj_conf_arr.argsort())
+
+    boxes = np.asarray([obj['bbox'] for obj in objs])
+    categories = np.asarray([obj['class_id'] for obj in objs])
+
+    n_objs = len(objs)
+
+    boxes = boxes[sort_index]
+    categories = categories[sort_index]
+
+    ious = box_iou_batch(boxes, boxes)
+    ious = ious - np.eye(n_objs)
+
+    keep = np.ones(n_objs, dtype=bool)
+
+    for index, (iou, category) in enumerate(zip(ious, categories, strict=True)):
+        if not keep[index]:
+            continue
+
+        condition = (iou > iou_threshold) & (categories == category)
+        keep = keep & ~condition
+
+    keep = keep[sort_index.argsort()]
+    n_del = 0
+    for (obj, keep_) in enumerate(zip(objs, keep, strict=True)):
+        if not keep_:
+            obj['to_delete'] = 1
+            n_del += 1
+    return n_del
+
+
+def perform_nms(objs, enable_mask, nms_thresh, vid_nms_thresh, dup):
+    pred_obj_pairs = list(itertools.combinations(objs, 2))
+
+    # objs_to_delete = []
+    # global_objs_to_delete = []
+
+    n_vid_pairs = 0
+    n_del = 0
+
+    if vid_nms_thresh > 0:
+        vid_pred_obj_pairs = [(obj1, obj2) for obj1, obj2 in pred_obj_pairs
+                              if obj1['video_id'] != obj2['video_id']]
+        n_vid_pairs = len(vid_pred_obj_pairs)
+
+        n_match = find_matching_obj_pairs(
+            vid_pred_obj_pairs, enable_mask, vid_nms_thresh,
+            # objs_to_delete=objs_to_delete,
+            # global_objs_to_delete=global_objs_to_delete,
+        )
+        n_del += n_match
+        if not dup:
+            pred_obj_pairs = [(obj1, obj2) for obj1, obj2 in pred_obj_pairs
+                              if obj1['video_id'] == obj2['video_id']]
+
+    n_pairs = len(pred_obj_pairs)
+
+    if nms_thresh > 0:
+        n_match = find_matching_obj_pairs(
+            pred_obj_pairs, enable_mask, nms_thresh,
+            # objs_to_delete=objs_to_delete,
+            # global_objs_to_delete=global_objs_to_delete,
+        )
+        n_del += n_match
+
+    return n_del, n_pairs, n_vid_pairs
+
+
+def print_(*args, **kwargs):
+    sys.stdout.write(*args, **kwargs)
+    sys.stdout.write('\n')
+
+
 def linux_path(*args, **kwargs):
     return os.path.join(*args, **kwargs).replace(os.sep, '/')
 
 
-def add_suffix(src_path, suffix, dst_ext=''):
+def load_samples_from_txt(load_paths, xml_dir_name, load_path_root='', verbose=True,
+                          xml_root_dir='', root_dir=''
+                          ):
+    from pprint import pformat
+    from collections import OrderedDict
+    import ast
+
+    seq_to_samples = OrderedDict()
+
+    # if load_samples == '1':
+    #     load_samples = 'seq_to_samples.txt'
+
+    if load_path_root:
+        load_paths = [linux_path(load_path_root, k) for k in load_paths]
+
+    if verbose:
+        print(f'\n\nLoading samples from : {load_paths}\n\n')
+
+    for _f in load_paths:
+        if os.path.isdir(_f):
+            _f = linux_path(_f, 'seq_to_samples.txt')
+        try:
+            with open(_f, 'r') as fid:
+                curr_seq_to_samples = json.load(fid)
+        except json.decoder.JSONDecodeError:
+            with open(_f, 'r') as fid:
+                curr_seq_to_samples = ast.literal_eval(fid.read())
+        for _seq in curr_seq_to_samples:
+            if xml_dir_name is not None:
+                _dir_img_names = [(os.path.dirname(_sample), os.path.splitext(os.path.basename(_sample))[0])
+                                  for _sample in curr_seq_to_samples[_seq]]
+                if xml_root_dir:
+                    assert root_dir, "root_dir must be provided with xml_root_dir"
+                    xml_dir_paths = [_dir_name.replace(root_dir, xml_root_dir) for _dir_name, _ in _dir_img_names]
+                else:
+                    xml_dir_paths = [linux_path(_dir_name, xml_dir_name) for _dir_name, _ in _dir_img_names]
+
+                curr_seq_to_samples[_seq] = [linux_path(xml_dir_path, f'{_img_name}.xml')
+                                             for xml_dir_path, (_, _img_name) in zip(
+                        xml_dir_paths, _dir_img_names, strict=True)]
+
+            if _seq in seq_to_samples:
+                seq_to_samples[_seq] += curr_seq_to_samples[_seq]
+            else:
+                seq_to_samples[_seq] = curr_seq_to_samples[_seq]
+    seq_paths = [_seq for _seq in seq_to_samples if seq_to_samples[_seq]]
+    seq_to_samples = {_seq: seq_to_samples[_seq] for _seq in seq_paths}
+
+    return seq_paths, seq_to_samples
+
+
+def add_suffix_to_path(src_path, suffix):
+    # abs_src_path = os.path.abspath(src_path)
+    src_dir = os.path.dirname(src_path)
+    src_name = os.path.basename(src_path)
+    dst_path = linux_path(src_dir, suffix, src_name)
+    return dst_path
+
+
+def add_suffix_to_dir(src_path, suffix, sep='_'):
+    # abs_src_path = os.path.abspath(src_path)
+    src_dir = os.path.dirname(src_path)
+    src_name = os.path.basename(src_path)
+    dst_path = linux_path(src_dir + sep + suffix, src_name)
+    return dst_path
+
+
+def add_suffix(src_path, suffix, dst_ext='', sep='_'):
     # abs_src_path = os.path.abspath(src_path)
     src_dir = os.path.dirname(src_path)
     src_name, src_ext = os.path.splitext(os.path.basename(src_path))
     if not dst_ext:
         dst_ext = src_ext
 
-    dst_path = linux_path(src_dir, src_name + '_' + suffix + dst_ext)
+    dst_path = linux_path(src_dir, src_name + sep + suffix + dst_ext)
     return dst_path
 
 
 def compute_binary_cls_metrics(
         thresholds, probs, labels, class_names,
-        fp_thresholds=(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5)):
+        fp_thresholds=(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5),
+        show_pbar=False
+):
     if len(probs.shape) == 1:
         """assume only class 0 probs are provided"""
         probs = np.stack((probs, 1 - probs), axis=1)
@@ -768,19 +1723,32 @@ def compute_binary_cls_metrics(
     assert len(class_names) == 2, "n_classes must be 2 for binary_cls_metrics"
     assert len(labels) == n_val, "n_val mismatch"
 
-    assert n_val > 0, "no labels found"
+    # assert n_val > 0, "no labels found"
 
     n_conf_thresholds = len(thresholds)
-
-    conf_to_acc = np.zeros((n_conf_thresholds, 4), dtype=np.float32)
     class_tp = np.zeros((n_conf_thresholds, 2), dtype=np.float32)
     class_fp = np.zeros((n_conf_thresholds, 2), dtype=np.float32)
 
-    labels = labels.reshape((n_val, 1))
-
+    conf_to_acc = np.zeros((n_conf_thresholds, 4), dtype=np.float32)
     conf_to_acc[:, 0] = thresholds.squeeze()
 
-    for conf_id, conf_threshold in enumerate(tqdm(thresholds, ncols=70)):
+    fp_tp = np.zeros((n_conf_thresholds, 3), dtype=np.float32)
+    fp_tp[:, 0] = thresholds.squeeze()
+
+    n_fp_thresholds = len(fp_thresholds) + 1
+    roc_aucs = np.zeros((n_fp_thresholds, 2), dtype=np.float32)
+    roc_aucs[:, 0] = list(fp_thresholds) + [1, ]
+
+    if n_val == 0:
+        return class_tp, class_fp, conf_to_acc, roc_aucs, fp_tp
+
+    labels = labels.reshape((n_val, 1))
+
+    thresh_iter = thresholds
+    if show_pbar:
+        thresh_iter = tqdm(thresholds, ncols=70)
+
+    for conf_id, conf_threshold in enumerate(thresh_iter):
         is_class_1 = probs[:, 1] >= conf_threshold
         predictions = np.zeros((n_val, 1), dtype=np.int32)
         predictions[is_class_1] = 1
@@ -830,8 +1798,8 @@ def compute_binary_cls_metrics(
             class_tp[conf_id, class_id] = class_tp_
             class_fp[conf_id, 1 - class_id] = non_class_fp_
 
-    y_true = 1 - labels.squeeze()
-    y_score = probs[:, 0].squeeze()
+    y_score = probs[:, 0].reshape((n_val,))
+    y_true = (1 - labels).reshape((n_val,))
 
     fpr, tpr, thresholds = roc_curve(y_true, y_score)
 
@@ -877,8 +1845,9 @@ def compute_binary_cls_metrics(
                     if fp_id > 0:
                         roc_auc_prev = np.round(roc_aucs[fp_id - 1][1], 3)
                         roc_auc_curr = np.round(roc_auc, 3)
+
                         if roc_auc_prev > roc_auc_curr:
-                            raise AssertionError('decreasing roc_auc')
+                            print('decreasing roc_auc')
 
             # if roc_auc == 0:
             #     print('zero roc_auc')
@@ -985,9 +1954,20 @@ def binary_cls_metrics(
         out_root_dir,
         misc_out_root_dir,
         eval_result_dict,
-        enable_tests=True
+        enable_tests=True,
+        verbose=True,
 ):
     assert len(gt_classes) == 2, "Number of classes must be 2"
+
+    stats_0 = class_stats[0]
+    stats_1 = class_stats[1]
+
+    n_dets_0 = stats_0['n_dets']
+    n_dets_1 = stats_1['n_dets']
+    n_dets = n_dets_0 + n_dets_1
+
+    # if n_dets == 0:
+    #     return
 
     """extract stats"""
     if True:
@@ -999,11 +1979,8 @@ def binary_cls_metrics(
         max_tp_out_root_dir = linux_path(out_root_dir, 'max_tp')
         roc_auc_out_root_dir = linux_path(out_root_dir, 'roc_auc')
 
-        os.makedirs(max_tp_out_root_dir, exist_ok=1)
-        os.makedirs(roc_auc_out_root_dir, exist_ok=1)
-
-        stats_0 = class_stats[0]
-        stats_1 = class_stats[1]
+        os.makedirs(max_tp_out_root_dir, exist_ok=True)
+        os.makedirs(roc_auc_out_root_dir, exist_ok=True)
 
         tp_0 = stats_0['tp_class']
         tp_1 = stats_1['tp_class']
@@ -1205,20 +2182,21 @@ def binary_cls_metrics(
             gt_ex_pc = [gt_ex_pc_0, gt_ex_pc_1]
             gt_uex_pc = [gt_uex_pc_0, gt_uex_pc_1]
 
-            print(f'\nn_gt_ex_all: {n_gt_ex_all} :: '
-                  f'{gt_classes[0]}: {n_gt_ex_0} ({gt_ex_pc_0:.2f} %), '
-                  f'{gt_classes[1]}: {n_gt_ex_1} ({gt_ex_pc_1:.2f} %)\n')
+            if verbose:
+                print(f'\nn_gt_ex_all: {n_gt_ex_all} :: '
+                      f'{gt_classes[0]}: {n_gt_ex_0} ({gt_ex_pc_0:.2f} %), '
+                      f'{gt_classes[1]}: {n_gt_ex_1} ({gt_ex_pc_1:.2f} %)\n')
 
-            print(f'\nn_gt_uex_all: {n_gt_uex_all} :: '
-                  f'{gt_classes[0]}: {n_gt_uex_0} ({gt_uex_pc_0:.2f} %), '
-                  f'{gt_classes[1]}: {n_gt_uex_1} ({gt_uex_pc_1:.2f} %)\n')
+                print(f'\nn_gt_uex_all: {n_gt_uex_all} :: '
+                      f'{gt_classes[0]}: {n_gt_uex_0} ({gt_uex_pc_0:.2f} %), '
+                      f'{gt_classes[1]}: {n_gt_uex_1} ({gt_uex_pc_1:.2f} %)\n')
 
-            print(f'\nn_fn_dets_0: {n_fn_dets_0}')
-            print(f'n_fn_dets_1: {n_fn_dets_1}')
+                print(f'\nn_fn_dets_0: {n_fn_dets_0}')
+                print(f'n_fn_dets_1: {n_fn_dets_1}')
 
-            print(f'\nn_gt: {n_gt} :: '
-                  f'{gt_classes[0]}: {n_gt_0}, '
-                  f'{gt_classes[1]}: {n_gt_1}\n')
+                print(f'\nn_gt: {n_gt} :: '
+                      f'{gt_classes[0]}: {n_gt_0}, '
+                      f'{gt_classes[1]}: {n_gt_1}\n')
 
     """compute and save binary cls metrics"""
     if True:
@@ -1285,12 +2263,9 @@ def binary_cls_metrics(
         class 1 relative TP rate = (class 1 objs correctly classified as class 1) / (total class 1 objs)
         """
 
-        """don't even rememver what crap this is"""
+        """don't even remember what crap this is"""
         # n_dets_0 = stats_0['tp_sum'] + stats_1['fp_cls_sum']
         # n_dets_1 = stats_1['tp_sum'] + stats_0['fp_cls_sum']
-
-        n_dets_0 = stats_0['n_dets']
-        n_dets_1 = stats_1['n_dets']
 
         # total_class_dets[:, 0] = tp_sum_thresh_all[:, 0] + fp_cls_sum_thresh_all[:, 1]
         # total_class_dets[:, 1] = tp_sum_thresh_all[:, 1] + fp_cls_sum_thresh_all[:, 0]
@@ -1463,9 +2438,9 @@ def get_intersection(val1, val2, conf_class, score_thresh, name1, name2):
     _diff = val1 - val2
 
     idx = np.argwhere(np.diff(np.sign(_diff))).flatten()
+
     if not idx.size:
         # print('rec/prec: {}'.format(pformat(np.vstack((conf_class, rec, prec)).T)))
-
         if _diff.size:
             idx = np.argmin(np.abs(_diff))
 
@@ -1473,14 +2448,17 @@ def get_intersection(val1, val2, conf_class, score_thresh, name1, name2):
             idx = idx[0]
 
         _txt = f'No intersection between {name1} and {name2} found; ' \
-            f'min_difference: {_diff[idx]} at {(val1[idx], val2[idx])} ' \
-            f'for confidence: {conf_class[idx]}'
-        print(_txt)
-        _rec_prec = (val1[idx] + val2[idx]) / 2.0
-        _score = conf_class[idx]
+               f'min_difference: {_diff[idx]} at {(val1[idx], val2[idx])} ' \
+               f'for confidence: {conf_class[idx]}'
+        # print(_txt)
+        if not idx.size:
+            _rec_prec = _score = 0
+        else:
+            _rec_prec = (val1[idx] + val2[idx]) / 2.0
+            _score = conf_class[idx]
     else:
         _txt = f'Intersection at {val1[idx]} for confidence: {conf_class[idx]} with idx: {idx}'
-        print(_txt)
+        # print(_txt)
         _rec_prec = val1[idx[0]]
         _score = conf_class[idx][0]
 
@@ -1529,8 +2507,9 @@ def compute_thresh_rec_prec(thresh_idx, score_thresholds,
     return _rec_th, _prec_th, tp_sum_th, fp_sum_th, fp_cls_sum_th, fp_dup_sum_th, fp_nex_sum_th
 
 
-def draw_objs(img, objs, alpha=0.5, class_name_to_col=None, col=None,
-              in_place=False, bbox=True, mask=True, thickness=2, check_bb=0):
+def draw_objs(img, objs, alpha=0.5, class_name_to_col=None, cols=None,
+              in_place=False, bbox=True, mask=False, thickness=2, check_bb=0,
+              bb_resize=None, cls_cat_to_col=None, title=None, show_class=False):
     if in_place:
         vis_img = img
     else:
@@ -1538,104 +2517,131 @@ def draw_objs(img, objs, alpha=0.5, class_name_to_col=None, col=None,
 
     mask_img = np.zeros_like(vis_img)
 
+    text_args = dict(
+        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+        fontScale=0.8,
+        thickness=2,
+        # lineType=cv2.LINE_AA,
+    )
+
     vis_h, vis_w = vis_img.shape[:2]
 
     resize_factor = 1.0
+    n_objs = len(objs)
 
-    for obj in objs:
-        label = obj['class']
-        if col is None:
-            class_col = class_name_to_col[label]
+    if cols is not None:
+        if not isinstance(cols, (list, tuple)):
+            cols = [cols, ] * n_objs
+    else:
+        if class_name_to_col is not None:
+            cols = [class_name_to_col[obj['class']] for obj in objs]
         else:
-            class_col = col
-        class_col = col_bgr[class_col]
+            assert cls_cat_to_col is not None, "either class_name_to_col or cls_cat_to_col must be provided"
+            """
+            get col based on classification status
+            tp = green for both gt and det
+            fp = red for det, fn=red for gt
+            """
+            cols = [cls_cat_to_col[obj['cls']] for obj in objs]
 
-        rle = obj['mask']
-        mask_orig = mask_util.decode(rle).squeeze()
-        mask_orig = np.ascontiguousarray(mask_orig, dtype=np.uint8)
+    for obj, obj_col in zip(objs, cols, strict=True):
+        obj_col = col_bgr[obj_col]
 
-        mask_h, mask_w = mask_orig.shape[:2]
+        if mask:
+            rle = obj['mask']
+            mask_orig = mask_util.decode(rle).squeeze()
+            mask_orig = np.ascontiguousarray(mask_orig, dtype=np.uint8)
 
-        if (mask_h, mask_w) != (vis_h, vis_w):
-            resize_factor = vis_h / mask_h
-            mask_uint = cv2.resize(mask_orig, (vis_w, vis_h))
-        else:
-            mask_uint = mask_orig
+            mask_h, mask_w = mask_orig.shape[:2]
+
+            if (mask_h, mask_w) != (vis_h, vis_w):
+                resize_factor = vis_h / mask_h
+                mask_uint = cv2.resize(mask_orig, (vis_w, vis_h),
+                                       interpolation=cv2.INTER_NEAREST)
+            else:
+                mask_uint = mask_orig
 
         if bbox:
             xmin, ymin, xmax, ymax = obj["bbox"]
 
             if check_bb:
                 log_dir = 'log/masks'
-                os.makedirs(log_dir, exist_ok=1)
+                os.makedirs(log_dir, exist_ok=True)
 
                 time_stamp = datetime.now().strftime("%y%m%d_%H%M%S")
 
                 bb = (xmin, ymin, xmax, ymax)
 
-                mask_pts, mask_bb, is_multi = contour_pts_from_mask(mask_orig)
+                if mask:
+                    mask_pts, mask_bb, is_multi = mask_img_to_pts(mask_orig)
 
-                mask_xmin, mask_ymin, w, h = mask_bb
-                mask_xmax, mask_ymax = mask_xmin + w, mask_ymin + h
+                    mask_xmin, mask_ymin, w, h = mask_bb
+                    mask_xmax, mask_ymax = mask_xmin + w, mask_ymin + h
 
-                mask_bb = (mask_xmin, mask_ymin, mask_xmax, mask_ymax)
-                mask_y, mask_x = np.nonzero(mask_orig)
+                    mask_bb = (mask_xmin, mask_ymin, mask_xmax, mask_ymax)
+                    mask_y, mask_x = np.nonzero(mask_orig)
 
-                mask_rgb = np.zeros((mask_h, mask_w, 3), dtype=np.uint8)
-                mask_rgb[mask_y, mask_x, :] = 255
+                    mask_rgb = np.zeros((mask_h, mask_w, 3), dtype=np.uint8)
+                    mask_rgb[mask_y, mask_x, :] = 255
 
-                cv2.rectangle(
-                    mask_rgb, (int(mask_xmin), int(mask_ymin)), (int(mask_xmax), int(mask_ymax)), (0, 255, 0),
-                    thickness)
-
-                if is_multi:
-                    msg = "annoying multi mask"
-                    cv2.imwrite(f'{log_dir}/{msg} {time_stamp}.png', mask_rgb)
-                    # raise AssertionError(msg)
-                    continue
-
-                if len(mask_pts) < 4:
-                    msg = 'annoying mask with too few points'
-                    cv2.imwrite(f'{log_dir}/{msg} {time_stamp}.png', mask_rgb)
-                    # raise AssertionError(msg)
-                    continue
-
-                # mask_pts = contour_pts_from_mask(mask_orig, allow_multi=0)
-                # mask_pts = np.asarray(mask_pts, dtype=np.int32)
-
-                # cv2.rectangle(
-                #     mask_rgb, (int(mask_xmin), int(mask_ymin)), (int(mask_xmax), int(mask_ymax)), (0, 255, 0),
-                #     thickness)
-                # cv2.imwrite('mask_bb mismatch.png', mask_rgb)
-
-                mask_bb_area = w * h
-
-                if mask_bb_area < 4:
-                    msg = 'annoying invalid mask with tiny area'
-                    cv2.imwrite(f'{log_dir}/{msg} {time_stamp}.png', mask_rgb)
-                    raise AssertionError(f'{msg} {mask_bb_area}')
-                    # continue
-
-                if bb != mask_bb:
-                    msg = "mask_bb mismatch"
-                    cv2.imwrite(f'{log_dir}/{msg} {time_stamp}.png', mask_rgb)
-                    # raise AssertionError(f'{msg}')
-                    continue
-
-                bb_norm = np.linalg.norm(np.asarray(bb))
-                mask_bb_norm = np.linalg.norm(np.asarray(mask_bb))
-                bb_diff_norm = np.linalg.norm(np.asarray(bb) - np.asarray(mask_bb))
-                bb_diff_norm_ratio = bb_diff_norm / max(bb_norm, mask_bb_norm)
-
-                if bb_diff_norm_ratio > 0.1:
                     cv2.rectangle(
-                        mask_rgb, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), thickness)
+                        mask_rgb, (int(mask_xmin), int(mask_ymin)), (int(mask_xmax), int(mask_ymax)), (0, 255, 0),
+                        thickness)
 
-                    cv2.imwrite(f'{log_dir}/mask_bb mismatch {time_stamp}.png', mask_rgb)
-                    # raise AssertionError("mask_bb mismatch")
-                    continue
+                    if is_multi:
+                        msg = "annoying multi mask"
+                        cv2.imwrite(f'{log_dir}/{msg} {time_stamp}.png', mask_rgb)
+                        # raise AssertionError(msg)
+                        continue
 
-                xmin, ymin, xmax, ymax = mask_bb
+                    if len(mask_pts) < 4:
+                        msg = 'annoying mask with too few points'
+                        cv2.imwrite(f'{log_dir}/{msg} {time_stamp}.png', mask_rgb)
+                        # raise AssertionError(msg)
+                        continue
+
+                    # mask_pts = contour_pts_from_mask(mask_orig, allow_multi=0)
+                    # mask_pts = np.asarray(mask_pts, dtype=np.int32)
+
+                    # cv2.rectangle(
+                    #     mask_rgb, (int(mask_xmin), int(mask_ymin)), (int(mask_xmax), int(mask_ymax)), (0, 255, 0),
+                    #     thickness)
+                    # cv2.imwrite('mask_bb mismatch.png', mask_rgb)
+
+                    mask_bb_area = w * h
+
+                    if mask_bb_area < 4:
+                        msg = 'annoying invalid mask with tiny area'
+                        cv2.imwrite(f'{log_dir}/{msg} {time_stamp}.png', mask_rgb)
+                        raise AssertionError(f'{msg} {mask_bb_area}')
+                        # continue
+
+                    if bb != mask_bb:
+                        msg = "mask_bb mismatch"
+                        cv2.imwrite(f'{log_dir}/{msg} {time_stamp}.png', mask_rgb)
+                        # raise AssertionError(f'{msg}')
+                        continue
+
+                    bb_norm = np.linalg.norm(np.asarray(bb))
+                    mask_bb_norm = np.linalg.norm(np.asarray(mask_bb))
+                    bb_diff_norm = np.linalg.norm(np.asarray(bb) - np.asarray(mask_bb))
+                    bb_diff_norm_ratio = bb_diff_norm / max(bb_norm, mask_bb_norm)
+
+                    if bb_diff_norm_ratio > 0.1:
+                        cv2.rectangle(
+                            mask_rgb, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), thickness)
+
+                        cv2.imwrite(f'{log_dir}/mask_bb mismatch {time_stamp}.png', mask_rgb)
+                        # raise AssertionError("mask_bb mismatch")
+                        continue
+
+                    xmin, ymin, xmax, ymax = mask_bb
+
+            if bb_resize is not None:
+                if mask:
+                    assert bb_resize == resize_factor, \
+                        f"mismatch between bb_resize: {bb_resize} and resize_factor from mask: {resize_factor}"
+                resize_factor = bb_resize
 
             if resize_factor != 1.0:
                 xmin *= resize_factor
@@ -1644,16 +2650,29 @@ def draw_objs(img, objs, alpha=0.5, class_name_to_col=None, col=None,
                 ymax *= resize_factor
 
             cv2.rectangle(
-                vis_img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), class_col, thickness)
+                vis_img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), obj_col, thickness)
+
+            if show_class:
+                label = obj['class']
+                conf = int(obj['confidence'] * 100)
+
+                pt = (int(xmin), int(ymin)) if xmin > 15 and ymin > 15 else (int(xmax), int(ymax))
+                # cv2.putText(vis_img, f'{label} {conf:d}', pt, cv2.FONT_HERSHEY_SIMPLEX, 0.8, obj_col, 2, cv2.LINE_AA)
+                put_text_with_background(vis_img, f'{label} {conf:d}', pt, obj_col, [0, 0, 0], **text_args)
 
         if mask:
             mask_binary = mask_uint.astype(bool)
 
-            mask_img[mask_binary] = class_col
+            mask_img[mask_binary] = obj_col
             vis_img[mask_binary] = (alpha * vis_img[mask_binary] +
                                     (1 - alpha) * mask_img[mask_binary])
 
     vis_img = vis_img.astype(np.uint8)
+
+    if title is not None:
+        # cv2.putText(vis_img, title, (15, 25), cv2.FONT_HERSHEY_SIMPLEX,
+        #             0.8, [255, 255, 255], 2, cv2.LINE_AA)
+        put_text_with_background(vis_img, title, (15, 25), [255, 255, 255], [0, 0, 0], **text_args)
 
     # cv2.imshow('vis_img', vis_img)
     # cv2.waitKey(0)
@@ -1729,6 +2748,67 @@ def get_mask_iou(mask_det, mask_gt, bb_det, bb_gt):
     return mask_iou
 
 
+def compute_overlaps_multi(iou, ioa_1, ioa_2, objects_1, objects_2, xywh=False):
+    """
+
+    compute overlap between each pair of objects in two sets of objects
+    can be used for computing overlap between all detections and annotations in a frame
+
+    :type iou: np.ndarray | None
+    :type ioa_1: np.ndarray | None
+    :type ioa_2: np.ndarray | None
+    :type objects_1: np.ndarray
+    :type objects_2: np.ndarray
+    :rtype: None
+    """
+    # handle annoying singletons
+    if len(objects_1.shape) == 1:
+        objects_1 = objects_1.reshape((1, 4))
+
+    if len(objects_2.shape) == 1:
+        objects_2 = objects_2.reshape((1, 4))
+
+    n1 = objects_1.shape[0]
+    n2 = objects_2.shape[0]
+
+    ul_1 = objects_1[:, :2]  # n1 x 2
+    ul_1_rep = np.tile(np.reshape(ul_1, (n1, 1, 2)), (1, n2, 1))  # np(n1 x n2 x 2) -> std(n2 x 2 x n1)
+    ul_2 = objects_2[:, :2]  # n2 x 2
+    ul_2_rep = np.tile(np.reshape(ul_2, (1, n2, 2)), (n1, 1, 1))  # np(n1 x n2 x 2) -> std(n2 x 2 x n1)
+
+    if xywh:
+        size_1 = objects_1[:, 2:]  # n1 x 2
+        size_2 = objects_2[:, 2:]  # n2 x 2
+        br_1 = ul_1 + size_1 - 1  # n1 x 2
+        br_2 = ul_2 + size_2 - 1  # n2 x 2
+    else:
+        br_1 = objects_1[:, 2:]  # n1 x 2
+        br_2 = objects_2[:, 2:]  # n2 x 2
+        size_1 = br_1 - ul_1 + 1
+        size_2 = br_2 - ul_2 + 1
+
+    br_1_rep = np.tile(np.reshape(br_1, (n1, 1, 2)), (1, n2, 1))  # np(n1 x n2 x 2) -> std(n2 x 2 x n1)
+    br_2_rep = np.tile(np.reshape(br_2, (1, n2, 2)), (n1, 1, 1))  # np(n1 x n2 x 2) -> std(n2 x 2 x n1)
+
+    size_inter = np.minimum(br_1_rep, br_2_rep) - np.maximum(ul_1_rep, ul_2_rep) + 1  # n2 x 2 x n1
+    size_inter[size_inter < 0] = 0
+    # np(n1 x n2 x 1) -> std(n2 x 1 x n1)
+    area_inter = np.multiply(size_inter[:, :, 0], size_inter[:, :, 1])
+
+    area_1 = np.multiply(size_1[:, 0], size_1[:, 1]).reshape((n1, 1))  # n1 x 1
+    area_1_rep = np.tile(area_1, (1, n2))  # np(n1 x n2 x 1) -> std(n2 x 1 x n1)
+    area_2 = np.multiply(size_2[:, 0], size_2[:, 1]).reshape((n2, 1))  # n2 x 1
+    area_2_rep = np.tile(area_2.transpose(), (n1, 1))  # np(n1 x n2 x 1) -> std(n2 x 1 x n1)
+    area_union = area_1_rep + area_2_rep - area_inter  # n2 x 1 x n1
+
+    if iou is not None:
+        iou[:] = np.divide(area_inter, area_union)  # n1 x n2
+    if ioa_1 is not None:
+        ioa_1[:] = np.divide(area_inter, area_1_rep)  # n1 x n2
+    if ioa_2 is not None:
+        ioa_2[:] = np.divide(area_inter, area_2_rep)  # n1 x n2
+
+
 def get_iou(bb_det, bb_gt, xywh=False):
     if xywh:
         det_x1, det_y1, det_w, det_h = bb_det
@@ -1759,48 +2839,6 @@ def get_iou(bb_det, bb_gt, xywh=False):
     ov = iw * ih / ua
 
     return ov
-
-
-def binary_mask_to_rle_coco(binary_mask):
-    binary_mask_fortran = np.asfortranarray(binary_mask, dtype="uint8")
-    rle = mask_util.encode(binary_mask_fortran)
-    rle["counts"] = rle["counts"].decode("utf-8")
-
-    return rle
-
-
-def contour_pts_to_mask(contour_pts, patch_img, col=(255, 255, 255)):
-    # np.savetxt('contourPtsToMask_mask_pts.txt', contour_pts, fmt='%.6f')
-
-    mask_img = np.zeros_like(patch_img, dtype=np.uint8)
-    # if not isinstance(contour_pts, list):
-    #     raise SystemError('contour_pts must be a list rather than {}'.format(type(contour_pts)))
-    if len(contour_pts) > 0:
-        mask_img = cv2.fillPoly(mask_img, np.array([contour_pts, ], dtype=np.int32), col)
-    blended_img = np.array(Image.blend(Image.fromarray(patch_img), Image.fromarray(mask_img), 0.5))
-
-    return mask_img, blended_img
-
-
-def contour_pts_from_mask(mask_img):
-    mask_img_gs = mask_img
-
-    contour_pts, _ = cv2.findContours(mask_img_gs, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
-    is_multi = False
-
-    if not contour_pts:
-        return [], [], is_multi
-
-    if len(contour_pts) > 1:
-        is_multi = True
-        contour_pts = max(contour_pts, key=cv2.contourArea)
-    else:
-        contour_pts = contour_pts[0]
-        is_multi = False
-
-    x, y, w, h = cv2.boundingRect(contour_pts)
-
-    return contour_pts, (x, y, w, h), is_multi
 
 
 #
@@ -1855,6 +2893,95 @@ def contour_pts_from_mask(mask_img):
 #
 #         return mask_pts
 #
+def get_class_ids_map(class_ids):
+    max_class_id = max(class_ids)
+    class_ids_map = {class_id: i for i, class_id in enumerate(class_ids)}
+    for class_id in range(max_class_id):
+        """map all missing class IDs to background"""
+        try:
+            _ = class_ids_map[class_id]
+        except KeyError:
+            class_ids_map[class_id] = 0
+    return class_ids_map
+
+
+def unmap_class_ids(labels_img, class_ids_map):
+    out_img = np.zeros_like(labels_img)
+    for class_id in class_ids_map.keys():
+        out_img[labels_img == class_ids_map[class_id]] = class_id
+    return out_img
+
+
+def map_class_ids(labels_img, class_ids_map):
+    class_ids = np.unique(labels_img, return_inverse=False)
+    out_img = np.zeros_like(labels_img)
+    for class_id in class_ids:
+        out_img[labels_img == class_id] = class_ids_map[class_id]
+    return out_img
+
+
+def mask_img_to_rle_coco(binary_mask):
+    binary_mask_fortran = np.asfortranarray(binary_mask, dtype="uint8")
+    rle = mask_util.encode(binary_mask_fortran)
+    rle["counts"] = rle["counts"].decode("utf-8")
+
+    return rle
+
+
+def mask_img_to_pts(mask_img):
+    mask_img_gs = mask_img
+
+    contour_pts, _ = cv2.findContours(mask_img_gs, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
+    is_multi = False
+
+    if not contour_pts:
+        return [], [], is_multi
+
+    if len(contour_pts) > 1:
+        is_multi = True
+        contour_pts = max(contour_pts, key=cv2.contourArea)
+    else:
+        contour_pts = contour_pts[0]
+        is_multi = False
+
+    x, y, w, h = cv2.boundingRect(contour_pts)
+
+    contour_pts = list(contour_pts.squeeze())
+
+    return contour_pts, (x, y, w, h), is_multi
+
+
+def mask_rle_to_img(rle):
+    mask_img = mask_util.decode(rle).squeeze()
+    mask_img = np.ascontiguousarray(mask_img, dtype=np.uint8)
+
+    return mask_img
+
+
+def resize_mask_rle_through_pts(mask_rle, det_img_w, det_img_h):
+    mask_pts, bbox, is_multi = mask_rle_to_pts(mask_rle)
+    mask_h, mask_w = mask_rle["size"]
+    norm_h, norm_w = float(det_img_w) / float(mask_w), float(det_img_h) / float(mask_h)
+    mask_pts = [(pt[0] * norm_w, pt[1] * norm_w) for pt in mask_pts]
+    mask_rle = mask_pts_to_img(mask_pts, det_img_h, det_img_w, to_rle=1)
+    return mask_rle
+
+
+def resize_mask_rle_through_img(rle, dst_w, dst_h):
+    mask_img = mask_rle_to_img(rle)
+    mask_img = mask_img.astype(np.uint8)
+    dst_mask_img = cv2.resize(mask_img, (dst_w, dst_h), interpolation=cv2.INTER_LINEAR)
+    dst_mask_img = dst_mask_img.astype(bool)
+    dst_mask_rle = mask_img_to_rle_coco(dst_mask_img)
+    return dst_mask_rle
+
+
+def mask_rle_to_pts(rle):
+    mask_img = mask_rle_to_img(rle)
+
+    mask_pts, bbox, is_multi = mask_img_to_pts(mask_img)
+    return mask_pts, bbox, is_multi
+
 
 def mask_pts_to_str(mask_pts):
     mask_str = ';'.join(f'{x},{y}' for x, y in mask_pts)
@@ -1878,6 +3005,19 @@ def mask_str_to_pts(mask_str):
     return mask_pts
 
 
+def contour_pts_to_mask(contour_pts, patch_img, col=(255, 255, 255)):
+    # np.savetxt('contourPtsToMask_mask_pts.txt', contour_pts, fmt='%.6f')
+
+    mask_img = np.zeros_like(patch_img, dtype=np.uint8)
+    # if not isinstance(contour_pts, list):
+    #     raise SystemError('contour_pts must be a list rather than {}'.format(type(contour_pts)))
+    if len(contour_pts) > 0:
+        mask_img = cv2.fillPoly(mask_img, np.array([contour_pts, ], dtype=np.int32), col)
+    blended_img = np.array(Image.blend(Image.fromarray(patch_img), Image.fromarray(mask_img), 0.5))
+
+    return mask_img, blended_img
+
+
 def mask_pts_to_img(mask_pts, img_h, img_w, to_rle):
     mask_img = np.zeros((img_h, img_w), dtype=np.uint8)
     mask_img = cv2.fillPoly(mask_img, np.array([mask_pts, ], dtype=np.int32), 1)
@@ -1890,7 +3030,7 @@ def mask_pts_to_img(mask_pts, img_h, img_w, to_rle):
     bin_mask_img = mask_img.astype(bool)
 
     if to_rle:
-        mask_rle = binary_mask_to_rle_coco(bin_mask_img)
+        mask_rle = mask_img_to_rle_coco(bin_mask_img)
         return mask_rle
 
     return bin_mask_img
@@ -2656,7 +3796,7 @@ def draw_plot_func(dictionary, n_classes, window_title, plot_title, x_label, out
                 adjust_axes(r, t, fig, axes)
     # set window title
     fig.canvas.set_window_title(window_title)
-    # write classes in y axis
+    # write classes in y-axis
     tick_font_size = 12
     plt.yticks(range(n_classes), sorted_keys, fontsize=tick_font_size)
     """
@@ -2691,43 +3831,192 @@ def draw_plot_func(dictionary, n_classes, window_title, plot_title, x_label, out
     plt.close()
 
 
-def get_shifted_boxes(anchor_box, img, n_samples,
-                      min_anchor_iou, max_anchor_iou,
-                      min_shift_ratio, max_shift_ratio,
-                      min_resize_ratio=None, max_resize_ratio=None,
-                      min_size=20, max_size_ratio=0.8,
-                      gt_boxes=None,
-                      max_gt_iou=None,
-                      sampled_boxes=None,
-                      max_sampled_iou=0.5,
-                      max_iters=100,
-                      name='',
-                      vis=0):
+def draw_dotted_line(img, pt1, pt2, color, thickness=1, gap=7):
+    dist = ((pt1[0] - pt2[0]) ** 2 + (pt1[1] - pt2[1]) ** 2) ** .5
+    pts = []
+    for i in np.arange(0, dist, gap):
+        r = i / dist
+        x = int((pt1[0] * (1 - r) + pt2[0] * r) + .5)
+        y = int((pt1[1] * (1 - r) + pt2[1] * r) + .5)
+        p = (x, y)
+        pts.append(p)
+
+    for p in pts:
+        cv2.circle(img, p, thickness, color, -1)
+
+
+def draw_dotted_poly(img, pts, color, thickness=1):
+    s = pts[0]
+    e = pts[0]
+    pts.append(pts.pop(0))
+    for p in pts:
+        s = e
+        e = p
+        draw_dotted_line(img, s, e, color, thickness)
+
+
+def draw_dotted_rect(img, pt1, pt2, color, thickness=1):
+    pts = [pt1, (pt2[0], pt1[1]), pt2, (pt1[0], pt2[1])]
+    draw_dotted_poly(img, pts, color, thickness)
+
+
+def draw_box(frame, box, _id=None, color='black', thickness=2,
+             is_dotted=0, transparency=0., xywh=True, norm=False):
+    """
+    :type frame: np.ndarray
+    :type _id: int | str | None
+    :param color: indexes into col_bgr
+    :type color: str
+    :type thickness: int
+    :type is_dotted: int
+    :type transparency: float
+    :rtype: None
+    """
+    if not isinstance(box, np.ndarray):
+        box = np.asarray(box)
+
+    if np.any(np.isnan(box)):
+        print('invalid location provided: {}'.format(box))
+        return
+
+    if isinstance(color, str):
+        color = col_bgr[color]
+
+    if isinstance(box, np.ndarray):
+        box = list(box.squeeze())
+
+    if xywh:
+        pt1 = (box[0], box[1])
+        pt2 = (box[0] + box[2],
+               box[1] + box[3])
+    else:
+        pt1 = (box[0], box[1])
+        pt2 = (box[2], box[3])
+
+    img_h, img_w = frame.shape[:2]
+
+    if norm:
+        pt1 = (pt1[0] * img_w, pt1[1] * img_h)
+        pt2 = (pt2[0] * img_w, pt2[1] * img_h)
+
+    pt1 = tuple(map(int, pt1))
+    pt2 = tuple(map(int, pt2))
+
+    if transparency > 0:
+        _frame = np.copy(frame)
+    else:
+        _frame = frame
+
+    if is_dotted:
+        draw_dotted_rect(_frame, pt1, pt2, color, thickness=thickness)
+    else:
+        cv2.rectangle(_frame, pt1, pt2, color, thickness=thickness)
+
+    if transparency > 0:
+        frame[pt1[1]:pt2[1], pt1[0]:pt2[0], ...] = (
+                frame[pt1[1]:pt2[1], pt1[0]:pt2[0], ...].astype(np.float32) * (1 - transparency) +
+                _frame[pt1[1]:pt2[1], pt1[0]:pt2[0], ...].astype(np.float32) * transparency
+        ).astype(frame.dtype)
+
+    if _id is not None:
+        font_line_type = cv2.LINE_AA
+        cv2.putText(frame, str(_id), (int(box[0] - 1), int(box[1] - 1)), cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5, color, 1, font_line_type)
+
+
+def draw_boxes(frame, boxes, **kwargs):
+    if len(boxes.shape) == 1:
+        boxes = np.expand_dims(boxes, axis=0)
+    for box in boxes:
+        draw_box(frame, box, **kwargs)
+
+
+def compute_overlap(iou, ioa_1, ioa_2, object_1, objects_2):
     """
 
-    :param anchor_box:
-    :param img:
-    :param n_samples:
-    :param min_anchor_iou:
-    :param max_anchor_iou:
-    :param min_shift_ratio:
-    :param max_shift_ratio:
-    :param min_resize_ratio:
-    :param max_resize_ratio:
-    :param min_size:
-    :param max_size_ratio:
-    :param gt_boxes:
-    :param max_gt_iou:
-    :param sampled_boxes:
-    :param max_sampled_iou:
-    :param max_iters:
-    :param name:
-    :param vis:
-    :return:
+    compute overlap of a single object with one or more objects
+    specialized version for greater speed
+
+    :type iou: np.ndarray | None
+    :type ioa_1: np.ndarray | None
+    :type ioa_2: np.ndarray | None
+    :type object_1: np.ndarray
+    :type objects_2: np.ndarray
+    :rtype: None
     """
 
-    # vis = 1
+    n1 = object_1.shape[0]
 
+    assert n1 == 1, "object_1 should be a single object"
+
+    n = objects_2.shape[0]
+
+    ul_coord_1 = object_1[0, :2].reshape((1, 2))
+    ul_coords_2 = objects_2[:, :2]  # n x 2
+    ul_coords_inter = np.maximum(ul_coord_1, ul_coords_2)  # n x 2
+
+    size_1 = object_1[0, 2:].reshape((1, 2))
+    sizes_2 = objects_2[:, 2:]  # n x 2
+
+    br_coord_1 = ul_coord_1 + size_1 - 1
+    br_coords_2 = ul_coords_2 + sizes_2 - 1  # n x 2
+    br_coords_inter = np.minimum(br_coord_1, br_coords_2)  # n x 2
+
+    sizes_inter = br_coords_inter - ul_coords_inter + 1
+    sizes_inter[sizes_inter < 0] = 0
+    areas_inter = np.multiply(sizes_inter[:, 0], sizes_inter[:, 1]).reshape((n, 1))  # n x 1
+
+    areas_2 = None
+    if iou is not None:
+        areas_2 = np.multiply(sizes_2[:, 0], sizes_2[:, 1]).reshape((n, 1))  # n x 1
+        area_union = size_1[0, 0] * size_1[0, 1] + areas_2 - areas_inter
+        iou[:] = np.divide(areas_inter, area_union)
+    if ioa_1 is not None:
+        """intersection / area of object 1"""
+        ioa_1[:] = np.divide(areas_inter, size_1[0, 0] * size_1[0, 1])
+    if ioa_2 is not None:
+        """intersection / area of object 2"""
+        if areas_2 is None:
+            areas_2 = np.multiply(sizes_2[:, 0], sizes_2[:, 1])
+        ioa_2[:] = np.divide(areas_inter, areas_2)
+
+
+def compute_iou_single(bb1, bb2):
+    x1, y1, w1, h1 = bb1
+    x2, y2, w2, h2 = bb2
+
+    # bb1 = [bb1[0], bb1[1], bb1[0] + bb1[2], bb1[1] + bb1[3]]
+    # bb2 = [bb2[0], bb2[1], bb2[0] + bb2[2], bb2[1] + bb2[3]]
+
+    bb_intersect = [max(x1, x2),
+                    max(y1, y2),
+                    min(x1 + w1, x2 + w2),
+                    min(y1 + h1, y2 + h2)]
+
+    iw = bb_intersect[2] - bb_intersect[0] + 1
+    ih = bb_intersect[3] - bb_intersect[1] + 1
+
+    if iw <= 0 or ih <= 0:
+        return 0
+    area_intersect = (iw * ih)
+    area_union = (w1 + 1) * (h1 + 1) + (w2 + 1) * (h2 + 1) - area_intersect
+    iou = area_intersect / area_union
+    return iou
+
+
+def get_shifted_boxes(
+        anchor_box, img, n_samples,
+        min_anchor_iou, max_anchor_iou,
+        min_shift_ratio, max_shift_ratio,
+        min_resize_ratio=None, max_resize_ratio=None,
+        min_size=20, max_size_ratio=0.8,
+        gt_boxes=None,
+        max_gt_iou=None,
+        sampled_boxes=None,
+        max_sampled_iou=0.5,
+        max_iters=100,
+        name='',
+        vis=0):
     if not name:
         name = 'get_shifted_boxes'
 

@@ -20,7 +20,8 @@ from mmdet.apis import multi_gpu_test, single_gpu_test
 from mmdet.datasets import (build_dataloader, build_dataset,
                             replace_ImageToTensor)
 from mmdet.models import build_detector
-from mmdet.utils.misc import read_class_info
+
+from mmdet.utils.misc import read_class_info, linux_path
 
 import paramparse
 
@@ -83,7 +84,11 @@ class Params:
     def __init__(self):
         self.cfg = ()
         self.config = ''
-        self.checkpoint = ''
+
+        self.ckpt = ''
+        self.ckpt_dir = ''
+        self.ckpt_name = ''
+
         self.cfg_options = None
         # self.eval = ["bbox", "segm"]
         self.eval = []
@@ -107,6 +112,10 @@ class Params:
         self.show_score_thr = 0.3
         self.tmpdir = ''
         self.test_name = 'test'
+
+        self.set_zero = ()
+        self.pool = 0
+
         # self.class_info = 'data/classes_ipsc_5_class.txt'
 
 
@@ -117,10 +126,26 @@ def main():
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(params.local_rank)
 
-    checkpoint_dir = os.path.dirname(params.checkpoint)
+    config_name = os.path.splitext(os.path.basename(params.config))[0]
+
+    if not params.ckpt:
+        if not params.ckpt_dir:
+            params.ckpt_dir = linux_path('work_dirs', config_name)
+        if not params.ckpt_name:
+            params.ckpt_name = 'latest.pth'
+
+        params.ckpt = linux_path(params.ckpt_dir, params.ckpt_name)
+
+    checkpoint_dir = os.path.dirname(params.ckpt)
+    checkpoint_name = os.path.splitext(os.path.basename(params.ckpt))[0]
 
     if not params.out_dir:
-        params.out_dir = os.path.join(checkpoint_dir, params.test_name)
+        params.out_dir = os.path.join(checkpoint_dir, f'{checkpoint_name}_on_{params.test_name}')
+        if params.pool > 0:
+            params.out_dir += f'_pool_{params.pool}'
+        if params.set_zero:
+            set_zero_str = '_'.join(str(x) for x in params.set_zero)
+            params.out_dir += f'_set_zero_{set_zero_str}'
 
     os.makedirs(params.out_dir, exist_ok=1)
 
@@ -161,12 +186,11 @@ def main():
             if cfg.model.neck.rfp_backbone.get('pretrained'):
                 cfg.model.neck.rfp_backbone.pretrained = None
 
-    # in case the test dataset is concatenated
     samples_per_gpu = params.batch_size
     test_data_cfg = cfg.data[params.test_name]
     if isinstance(test_data_cfg, dict):
         test_data_cfg.test_mode = True
-        samples_per_gpu = test_data_cfg.pop('samples_per_gpu', 1)
+        # samples_per_gpu = test_data_cfg.pop('samples_per_gpu', 1)
         if samples_per_gpu > 1:
             # Replace 'ImageToTensor' to 'DefaultFormatBundle'
             test_data_cfg.pipeline = replace_ImageToTensor(
@@ -174,8 +198,8 @@ def main():
     elif isinstance(test_data_cfg, list):
         for ds_cfg in test_data_cfg:
             ds_cfg.test_mode = True
-        samples_per_gpu = max(
-            [ds_cfg.pop('samples_per_gpu', 1) for ds_cfg in test_data_cfg])
+        # samples_per_gpu = max(
+        #     [ds_cfg.pop('samples_per_gpu', 1) for ds_cfg in test_data_cfg])
         if samples_per_gpu > 1:
             for ds_cfg in test_data_cfg:
                 ds_cfg.pipeline = replace_ImageToTensor(ds_cfg.pipeline)
@@ -193,7 +217,7 @@ def main():
     fp16_cfg = cfg.get('fp16', None)
     if fp16_cfg is not None:
         wrap_fp16_model(model)
-    checkpoint = load_checkpoint(model, params.checkpoint, map_location='cpu')
+    checkpoint = load_checkpoint(model, params.ckpt, map_location='cpu')
     if params.fuse_conv_bn:
         model = fuse_conv_bn(model)
     # old versions did not save class info in checkpoints, this walkaround is
@@ -238,6 +262,8 @@ def main():
                                       filter_objects=params.filter_objects,
                                       write_masks=params.write_masks,
                                       write_xml=params.write_xml,
+                                      pool=params.pool,
+                                      set_zero=params.set_zero,
                                       )
         else:
             outputs = multi_gpu_test(model, data_loader, params.tmpdir,

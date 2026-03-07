@@ -152,7 +152,7 @@ class Bottle2neck(_Bottleneck):
 
             return out
 
-        if self.with_cp and x.requires_grad:
+        if self.use_checkpoint and x.requires_grad:
             out = cp.checkpoint(_inner_forward, x)
         else:
             out = _inner_forward(x)
@@ -273,7 +273,7 @@ class Res2Net(ResNet):
               plugin, options are 'after_conv1', 'after_conv2', 'after_conv3'.
             - stages (tuple[bool], optional): Stages to apply plugin, length
               should be same as 'num_stages'.
-        with_cp (bool): Use checkpoint or not. Using checkpoint will save some
+        use_checkpoint (bool): Use checkpoint or not. Using checkpoint will save some
             memory while slowing down the training speed.
         zero_init_residual (bool): Whether to use zero init for last norm layer
             in resblocks to let them behave as identity.

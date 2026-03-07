@@ -1,0 +1,3 @@
+coyote	red
+deer	green
+bear	blue

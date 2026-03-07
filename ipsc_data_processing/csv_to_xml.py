@@ -314,7 +314,7 @@ def main():
 
                 img_xml_file_path = linux_path(seq_xml_path, img_path_rel_noext + ".xml")
                 img_xml_file_dir = os.path.dirname(img_xml_file_path)
-                os.makedirs(img_xml_file_dir, exist_ok=1)
+                os.makedirs(img_xml_file_dir, exist_ok=True)
 
                 xml_writer.save(targetFile=img_xml_file_path, verbose=False)
             else:

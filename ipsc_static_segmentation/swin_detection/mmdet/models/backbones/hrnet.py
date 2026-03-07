@@ -36,7 +36,7 @@ class HRModule(nn.Module):
         self.multiscale_output = multiscale_output
         self.norm_cfg = norm_cfg
         self.conv_cfg = conv_cfg
-        self.with_cp = with_cp
+        self.use_checkpoint = use_checkpoint
         self.branches = self._make_branches(num_branches, blocks, num_blocks,
                                             num_channels)
         self.fuse_layers = self._make_fuse_layers()
@@ -87,7 +87,7 @@ class HRModule(nn.Module):
                 num_channels[branch_index],
                 stride,
                 downsample=downsample,
-                use_checkpoint=self.with_cp,
+                use_checkpoint=self.use_checkpoint,
                 norm_cfg=self.norm_cfg,
                 conv_cfg=self.conv_cfg))
         self.in_channels[branch_index] = \
@@ -97,7 +97,7 @@ class HRModule(nn.Module):
                 block(
                     self.in_channels[branch_index],
                     num_channels[branch_index],
-                    use_checkpoint=self.with_cp,
+                    use_checkpoint=self.use_checkpoint,
                     norm_cfg=self.norm_cfg,
                     conv_cfg=self.conv_cfg))
 
@@ -209,7 +209,7 @@ class HRNet(nn.Module):
         norm_eval (bool): Whether to set norm layers to eval mode, namely,
             freeze running stats (mean and var). Note: Effect on Batch Norm
             and its variants only.
-        with_cp (bool): Use checkpoint or not. Using checkpoint will save some
+        use_checkpoint (bool): Use checkpoint or not. Using checkpoint will save some
             memory while slowing down the training speed.
         zero_init_residual (bool): whether to use zero init for last norm layer
             in resblocks to let them behave as identity.
@@ -269,7 +269,7 @@ class HRNet(nn.Module):
         self.conv_cfg = conv_cfg
         self.norm_cfg = norm_cfg
         self.norm_eval = norm_eval
-        self.with_cp = with_cp
+        self.use_checkpoint = use_checkpoint
         self.zero_init_residual = zero_init_residual
 
         # stem net
@@ -420,7 +420,7 @@ class HRNet(nn.Module):
                 planes,
                 stride,
                 downsample=downsample,
-                use_checkpoint=self.with_cp,
+                use_checkpoint=self.use_checkpoint,
                 norm_cfg=self.norm_cfg,
                 conv_cfg=self.conv_cfg))
         inplanes = planes * block.expansion
@@ -429,7 +429,7 @@ class HRNet(nn.Module):
                 block(
                     inplanes,
                     planes,
-                    use_checkpoint=self.with_cp,
+                    use_checkpoint=self.use_checkpoint,
                     norm_cfg=self.norm_cfg,
                     conv_cfg=self.conv_cfg))
 
@@ -458,7 +458,7 @@ class HRNet(nn.Module):
                     in_channels,
                     num_channels,
                     reset_multiscale_output,
-                    use_checkpoint=self.with_cp,
+                    use_checkpoint=self.use_checkpoint,
                     norm_cfg=self.norm_cfg,
                     conv_cfg=self.conv_cfg))
 

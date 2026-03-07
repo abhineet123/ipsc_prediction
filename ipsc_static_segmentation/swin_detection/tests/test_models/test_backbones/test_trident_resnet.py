@@ -48,7 +48,7 @@ def test_trident_resnet_bottleneck():
     # Test Bottleneck with checkpoint forward
     block = TridentBottleneck(
         *trident_build_config, inplanes=64, planes=16, use_checkpoint=True)
-    assert block.with_cp
+    assert block.use_checkpoint
     x = torch.randn(1, 64, 56, 56)
     x_out = block(x)
     assert x_out.shape == torch.Size([block.num_branch, 64, 56, 56])

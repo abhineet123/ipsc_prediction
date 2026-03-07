@@ -4,7 +4,6 @@ _base_ = [
     '../_base_/schedules/schedule_1x.py',
     '../_base_/default_runtime.py'
 ]
-
 model = dict(
     backbone=dict(
         embed_dims=128,
@@ -146,9 +145,12 @@ data = dict(
     samples_per_gpu=1,
     workers_per_gpu=1,
     train=dict(
+        type='MojowRocksSyn',
+        img_prefix=data_root,
         ann_file=data_root + 'db3_2_to_17_except_6-large_huge-train.json',
         pipeline=train_pipeline),
     val=dict(
+        type='MojowRocksSyn',
         ann_file=data_root + 'db3_2_to_17_except_6-large_huge-val.json',
         img_prefix=data_root,
     ),

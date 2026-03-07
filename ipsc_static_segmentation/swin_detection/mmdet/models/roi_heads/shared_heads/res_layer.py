@@ -39,7 +39,7 @@ class ResLayer(nn.Module):
             stride=stride,
             dilation=dilation,
             style=style,
-            use_checkpoint=with_cp,
+            use_checkpoint=use_checkpoint,
             norm_cfg=self.norm_cfg,
             dcn=dcn)
         self.add_module(f'layer{stage + 1}', res_layer)

@@ -2,9 +2,14 @@ log/
 .cache/
 __pycache__/
 .idea/
+*.dll
 *.zip
 *.model
 gitu.sh
 gitu.bat
+
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
 
 

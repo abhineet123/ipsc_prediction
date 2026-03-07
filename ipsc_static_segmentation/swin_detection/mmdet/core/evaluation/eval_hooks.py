@@ -1,3 +1,5 @@
+import os
+import shutil
 import os.path as osp
 import warnings
 from math import inf
@@ -77,6 +79,7 @@ class EvalHook(Hook):
 
         if self.save_best is not None:
             self._init_rule(rule, self.save_best)
+            print(f'saving best checkpoint w.r.t {self.save_best}')
 
     def _init_rule(self, rule, key_indicator):
         """Initialize rule, key_indicator, comparison_func, and best score.
@@ -165,12 +168,18 @@ class EvalHook(Hook):
             runner.meta['hook_msgs']['best_score'] = best_score
             last_ckpt = runner.meta['hook_msgs']['last_ckpt']
             runner.meta['hook_msgs']['best_ckpt'] = last_ckpt
-            mmcv.symlink(
-                last_ckpt,
-                osp.join(runner.work_dir, f'best_{self.key_indicator}.pth'))
+
+            dst = osp.join(runner.work_dir, f'best_{self.key_indicator}.pth')
+            src = last_ckpt
+            if os.path.exists(dst):
+                os.remove(dst)
+
+            shutil.copyfile(src, dst)
+
+            # mmcv.symlink(src, dst)
             time_stamp = runner.epoch + 1 if self.by_epoch else runner.iter + 1
-            self.logger.info(f'Now best checkpoint is epoch_{time_stamp}.pth.'
-                             f'Best {self.key_indicator} is {best_score:0.4f}')
+            self.logger.info(f'saving best checkpoint in epoch {time_stamp} for '
+                             f'{self.key_indicator} = {best_score:0.4f}')
 
     def evaluate(self, runner, results):
         eval_res = self.dataloader.dataset.evaluate(

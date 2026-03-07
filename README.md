@@ -2,6 +2,9 @@
 
 This repository contains the code for the paper: [Towards Early Prediction of Human iPSC Reprogramming Success](https://arxiv.org/abs/2305.14575).
 
+Most of the links to dataset files, trained models and supplementary material no longer work because my Google drive storage limit was reduced drastically.
+Please contact [me](http://webdocs.cs.ualberta.ca/~asingh1/) if you need any of this data.
+
 <!-- MarkdownTOC -->
 
 - [Code](#cod_e_)
@@ -78,7 +81,7 @@ Trained models can be downloaded from [here](https://drive.google.com/drive/fold
      
 <a id="supplementary_material_"></a>
 # Supplementary material
-The supplementary PDF is available [here](https://drive.google.com/file/d/1YNm8N2B-0Cpu5y_MwUEz4iy3QNJAk897)
+The supplementary PDF is available [here](docs/ipsc_supplementary.pdf)
 
 <a id="visualization_s_"></a>
 ## Visualizations

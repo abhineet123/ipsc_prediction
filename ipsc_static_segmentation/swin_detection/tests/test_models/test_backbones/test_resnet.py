@@ -54,7 +54,7 @@ def test_resnet_basic_block():
 
     # Test BasicBlock with checkpoint forward
     block = BasicBlock(64, 64, use_checkpoint=True)
-    assert block.with_cp
+    assert block.use_checkpoint
     x = torch.randn(1, 64, 56, 56)
     x_out = block(x)
     assert x_out.shape == torch.Size([1, 64, 56, 56])
@@ -93,7 +93,7 @@ def test_resnet_bottleneck():
 
     # Test Bottleneck with checkpoint forward
     block = Bottleneck(64, 16, use_checkpoint=True)
-    assert block.with_cp
+    assert block.use_checkpoint
     x = torch.randn(1, 64, 56, 56)
     x_out = block(x)
     assert x_out.shape == torch.Size([1, 64, 56, 56])
@@ -455,7 +455,7 @@ def test_resnet_backbone():
     model = ResNet(18, use_checkpoint=True)
     for m in model.modules():
         if is_block(m):
-            assert m.with_cp
+            assert m.use_checkpoint
 
     # Test ResNet50 with BatchNorm forward
     model = ResNet(50)
@@ -489,7 +489,7 @@ def test_resnet_backbone():
     model = ResNet(50, use_checkpoint=True)
     for m in model.modules():
         if is_block(m):
-            assert m.with_cp
+            assert m.use_checkpoint
     model.init_weights()
     model.train()
 

@@ -1,0 +1,6 @@
+coyote	red
+deer	green
+bear	blue
+moose	magenta
+bison	cyan
+elk	orange

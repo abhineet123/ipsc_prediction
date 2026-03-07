@@ -8,16 +8,17 @@ from tqdm import tqdm
 from pascal_voc_io import PascalVocReader
 from eval_utils import sortKey, add_suffix, linux_path
 
-class Params:
+
+class Params(paramparse.CFG):
     def __init__(self):
-        self.cfg = ()
+        paramparse.CFG.__init__(self, cfg_prefix='xml_to_csv')
         self.batch_size = 1
         self.codec = 'H264'
         self.csv_file_name = ''
         self.enable_mask = 0
         self.fps = 20
         self.recursive = 0
-        self.img_ext = 'png'
+        self.img_ext = 'jpg'
         self.load_path = ''
         self.load_samples = []
         self.load_samples_root = ''
@@ -25,23 +26,27 @@ class Params:
         self.n_classes = 4
         self.n_frames = 0
         self.root_dir = ''
+        self.xml_root_dir = ''
         self.save_file_name = ''
         self.save_video = 1
         self.seq_paths = ''
         self.show_img = 0
+        self.allow_ignored = 0
         self.sources_to_include = []
         self.xml_dir = 'annotations'
         self.xml_suffix = ''
         self.csv_name = 'annotations.csv'
         self.start_id = -1
         self.end_id = -1
+        self.class_names_path = ''
+        self.ignore_invalid_class = 0
 
 
-def save_boxes_csv(seq_path, voc_path, sources_to_include, enable_mask, recursive,
+def save_boxes_csv(seq_path, xml_dir_path, out_dir, sources_to_include, enable_mask, recursive,
                    start_id, end_id, csv_name,
-                   samples, img_ext='jpg'):
-    if not voc_path or not os.path.isdir(voc_path):
-        raise IOError(f'Folder containing the xml files does not exist: {voc_path}')
+                   samples, class_map_dict, img_ext, ignore_invalid_class):
+    if not xml_dir_path or not os.path.isdir(xml_dir_path):
+        raise IOError(f'Folder containing the xml files does not exist: {xml_dir_path}')
         # return None
 
     # src_files = [os.path.join(seq_path, k) for k in os.listdir(seq_path) if
@@ -49,12 +54,12 @@ def save_boxes_csv(seq_path, voc_path, sources_to_include, enable_mask, recursiv
     # src_files.sort(key=sortKey)
 
     # seq_name = os.path.basename(img_path)
-    print(f'looking for xml files in {voc_path}')
+    print(f'looking for xml files in {xml_dir_path}')
     if recursive:
         print(f'searching recursively')
-        files = glob.glob(os.path.join(voc_path, '**/*.xml'), recursive=True)
+        files = glob.glob(os.path.join(xml_dir_path, '**/*.xml'), recursive=True)
     else:
-        files = glob.glob(os.path.join(voc_path, '*.xml'))
+        files = glob.glob(os.path.join(xml_dir_path, '*.xml'))
     n_files = len(files)
     if n_files == 0:
         raise AssertionError('No xml files found')
@@ -96,7 +101,7 @@ def save_boxes_csv(seq_path, voc_path, sources_to_include, enable_mask, recursiv
     files = files[start_id:end_id + 1]
     n_files = len(files)
 
-    print(f'Loading annotations from {n_files:d} files at {voc_path:s}...')
+    print(f'Loading annotations from {n_files:d} files at {xml_dir_path:s}...')
 
     n_boxes = 0
     csv_raw = []
@@ -110,7 +115,12 @@ def save_boxes_csv(seq_path, voc_path, sources_to_include, enable_mask, recursiv
         print('Excluding boxes from following sources: {}'.format(sources_to_exclude))
 
     pbar = tqdm(files)
+    class_to_n_files = {}
+
+
     for file in pbar:
+        file = linux_path(file)
+
         xml_reader = PascalVocReader(file)
 
         filename = os.path.splitext(os.path.basename(file))[0] + '.{}'.format(img_ext)
@@ -135,6 +145,21 @@ def save_boxes_csv(seq_path, voc_path, sources_to_include, enable_mask, recursiv
 
             if sources_to_exclude and bbox_source in sources_to_exclude:
                 continue
+
+            if class_map_dict is not None:
+                try:
+                    label = class_map_dict[label]
+                except KeyError:
+                    if ignore_invalid_class:
+                        print(f'{file}: ignoring invalid class: {label}')
+                        continue
+                    else:
+                        raise AssertionError(f'{file}: invalid class: {label}')
+
+            if label not in class_to_n_files:
+                class_to_n_files[label] = 0
+
+            class_to_n_files[label] += 1
 
             if id_number is None:
                 id_number = -1
@@ -165,13 +190,22 @@ def save_boxes_csv(seq_path, voc_path, sources_to_include, enable_mask, recursiv
         pbar.set_description(f'n_boxes: {n_boxes:d}')
 
     df = pd.DataFrame(csv_raw)
-    out_dir = os.path.dirname(voc_path)
     out_file_path = os.path.join(out_dir, csv_name)
 
     csv_columns = ['target_id', 'filename', 'width', 'height',
                    'class', 'xmin', 'ymin', 'xmax', 'ymax']
     if enable_mask:
         csv_columns.append('mask')
+
+    classes_in_seq = list(class_to_n_files.keys())
+    classe_frq = list(class_to_n_files.values())
+
+    classes_in_seq.sort(key=lambda x: class_to_n_files[x], reverse=True)
+
+    class_to_n_files_path = os.path.join(out_dir, f'class_to_n_files.txt')
+    with open(class_to_n_files_path, 'w') as fid:
+        for class_ in classes_in_seq:
+            fid.write(f'{class_}\t{class_to_n_files[class_]}\n')
 
     df.to_csv(out_file_path, columns=csv_columns, index=False)
 
@@ -184,10 +218,21 @@ def main():
 
     seq_paths = params.seq_paths
     root_dir = params.root_dir
+    xml_root_dir = params.xml_root_dir
     sources_to_include = params.sources_to_include
     enable_mask = params.enable_mask
     load_samples = params.load_samples
     load_samples_root = params.load_samples_root
+    class_names_path = params.class_names_path
+
+    class_map_dict = None
+    
+    if class_names_path:
+        class_names = [k.strip() for k in open(class_names_path, 'r').readlines() if k.strip()]
+        class_names, mapped_class_names, class_cols = zip(*[k.split('\t') for k in class_names])
+        class_map_dict = {class_name: mapped_class_name for (class_name, mapped_class_name) in
+                          zip(class_names, mapped_class_names, strict=True)}
+
 
     if seq_paths:
         if os.path.isfile(seq_paths):
@@ -243,11 +288,17 @@ def main():
             samples = seq_to_samples[seq_path]
         else:
             samples = []
-        voc_path = linux_path(seq_path, params.xml_dir)
-        save_boxes_csv(seq_path, voc_path, sources_to_include, enable_mask,
+        if xml_root_dir:
+            assert root_dir, "root_dir must be provided with xml_root_dir"
+            xml_dir_path = seq_path.replace(root_dir, xml_root_dir)
+        else:
+            xml_dir_path = linux_path(seq_path, params.xml_dir)
+
+        out_dir = seq_path
+
+        save_boxes_csv(seq_path, xml_dir_path, out_dir, sources_to_include, enable_mask,
                        params.recursive, params.start_id, params.end_id,
-                       params.csv_name,
-                       samples)
+                       params.csv_name, samples, class_map_dict, params.img_ext, params.ignore_invalid_class)
 
 
 if __name__ == '__main__':
