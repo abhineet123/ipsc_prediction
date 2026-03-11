@@ -2,9 +2,6 @@
 
 This repository contains the code for the paper: [Towards Early Prediction of Human iPSC Reprogramming Success](https://arxiv.org/abs/2305.14575).
 
-Most of the links to dataset files, trained models and supplementary material no longer work because my Google drive storage limit was reduced drastically.
-Please contact [me](http://webdocs.cs.ualberta.ca/~asingh1/) if you need any of this data.
-
 <!-- MarkdownTOC -->
 
 - [Code](#cod_e_)
@@ -63,21 +60,21 @@ Each of the above folders contains a subfolder named ```cmd``` containing markdo
 # Data
 Images and annotations can be downloaded from here:  
 
-- [ROI images and labels](https://drive.google.com/file/d/1sPXq7ZG0GtaSZZDUieZOzEidRSbhRU_l)    
-- [Raw 714 MP images](https://drive.google.com/file/d/1GNcFOBIYcJ52GEM3HonDzdN9nBeanGr9)
-- [List TXT files](https://drive.google.com/file/d/1a0gVn63TbX2nUWhQJdXvOMzWA2H1Abe1)
-- [Static segmentation JSON files](https://drive.google.com/file/d/17bXxZ9Z7Yydt4m2NnXYxS80c6gfUtWyh)
-- [Video segmentation JSON files](https://drive.google.com/file/d/1ne2225Rdz0Y75wonmfMlzxv_rhfeRSuu)
+- [ROI images and labels](https://huggingface.co/abhineet123/ipsc_prediction/blob/main/ipsc_data/roi_images_and_labels.zip)    
+- [Raw 714 MP images](https://huggingface.co/abhineet123/ipsc_prediction/blob/main/ipsc_data/raw_images.zip)
+- [List TXT files](https://huggingface.co/abhineet123/ipsc_prediction/blob/main/ipsc_data/ipsc_list_txt.zip)
+- [Static segmentation JSON files](https://huggingface.co/abhineet123/ipsc_prediction/blob/main/ipsc_data/ipsc_static_json.zip)
+- [Video segmentation JSON files](https://huggingface.co/abhineet123/ipsc_prediction/blob/main/ipsc_data/ipsc_video_json.zip)
 
 ROI images and labels, list TXT files and static segmentation JSON files should be extracted to ```/data/ipsc/well3/all_frames_roi/``` while video segmentation JSON files should be extracted to ```/data/ipsc/well3/all_frames_roi/ytvis19/```.
 
 <a id="trained_models_"></a>
 # Trained Models
-Trained models can be downloaded from [here](https://drive.google.com/drive/folders/1AHD7I8qHtg9hXqwfEgpNKw0QAG3j_2ae)    
-- both early-stage and late-stage trained models are included    
+Trained models can be downloaded from the [hugging face repo](https://huggingface.co/abhineet123/ipsc_prediction)    
+- both [early-stage](https://huggingface.co/abhineet123/ipsc_prediction/tree/main/early_stage) and [late-stage](https://huggingface.co/abhineet123/ipsc_prediction/tree/main/late_stage) trained models are included    
 - the zip file for any model should be extracted in its source directory while maintaining the folder structure inside the zip file    
     + for example, the models for IDOL should be extracted inside [    ipsc_video_segmentation/ipsc_vnext](ipsc_video_segmentation/ipsc_vnext)    
-    + this would extract the ```.pth``` checkpoint files into a subfolder named ```log/idol-ipsc-ext_reorg_roi_g2_16_53``` and ```log/idol-ipsc-ext_reorg_roi_g2_54_126``` for the early and late-stage models respectively   
+    + this would extract the ```.pth``` checkpoint files into a subfolder named ```log/idol-ipsc-ext_reorg_roi_g2_16_53``` and ```log/idol-ipsc-ext_reorg_roi_g2_54_126``` for the [early-stage](https://huggingface.co/abhineet123/ipsc_prediction/blob/main/early_stage/log_idol-ipsc-ext_reorg_roi_g2_16_53_model_0254999_pth.zip) and [late-stage](https://huggingface.co/abhineet123/ipsc_prediction/blob/main/late_stage/log_idol-ipsc-ext_reorg_roi_g2_54_126_model_0596999_pth.zip) models respectively   
      
 <a id="supplementary_material_"></a>
 # Supplementary material
