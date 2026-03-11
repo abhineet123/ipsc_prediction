@@ -66,7 +66,7 @@ Images and annotations can be downloaded from here:
 - [Static segmentation JSON files](https://huggingface.co/abhineet123/ipsc_prediction/blob/main/ipsc_data/ipsc_static_json.zip)
 - [Video segmentation JSON files](https://huggingface.co/abhineet123/ipsc_prediction/blob/main/ipsc_data/ipsc_video_json.zip)
 
-ROI images and labels archive should be extracted to `/data` while maintaining the folder structure therein so the ROI sequences end up at ```/data/ipsc/well3/all_frames_roi/```.
+ROI images and labels archive should be extracted to `/data` while maintaining the folder structure therein, so that the ROI sequences end up at ```/data/ipsc/well3/all_frames_roi/```.
 
 List TXT files and static segmentation JSON files should be extracted to ```/data/ipsc/well3/all_frames_roi/``` while video segmentation JSON files should be extracted to ```/data/ipsc/well3/all_frames_roi/ytvis19/```.
 
