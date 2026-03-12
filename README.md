@@ -140,12 +140,12 @@ The supplementary PDF is available [here](docs/ipsc_supplementary.pdf)
 
 <a id="visualization_s_"></a>
 ## Visualizations
-Videos visualizing the annotations along with detection results and failures are available [here](https://drive.google.com/drive/folders/1L1NXhSQvLpRSN4WBmbiv9lZYYP3zYgVS).
+Videos visualizing the annotations along with detection results and failures are available [here](https://huggingface.co/abhineet123/ipsc_prediction/tree/main/supplementary/visualizations).
 Detailed description of these videos is in the supplementary PDF.
 
 <a id="3d_plot_s_"></a>
 ## 3D Plots
-Frame-wise partial AUC plots are available [here](https://drive.google.com/drive/folders/1SyEjF9IV8AHnYgxM4kW2ACYvRo1Lp0PE) as interactive HTML files.
+Frame-wise partial AUC plots are available [here](https://huggingface.co/abhineet123/ipsc_prediction/tree/main/supplementary/3d_plots) as interactive HTML files.
 
 
 
