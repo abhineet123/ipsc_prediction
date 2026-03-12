@@ -83,7 +83,7 @@ List TXT files and static segmentation JSON files should be extracted to ```/dat
 
 <a id="trained_models_"></a>
 # Trained Models
-Trained models can be downloaded from the [hugging face repo](https://huggingface.co/abhineet123/ipsc_prediction)    
+Trained models are available in [this hugging face repo](https://huggingface.co/abhineet123/ipsc_prediction)    
 - both [early-stage](https://huggingface.co/abhineet123/ipsc_prediction/tree/main/early_stage) and [late-stage](https://huggingface.co/abhineet123/ipsc_prediction/tree/main/late_stage) trained models are included    
 - the zip file for any model should be extracted in its source directory while maintaining the folder structure inside the zip file    
     + for example, the models for IDOL should be extracted inside [    ipsc_video_segmentation/ipsc_vnext](ipsc_video_segmentation/ipsc_vnext)    
