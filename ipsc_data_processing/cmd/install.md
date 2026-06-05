@@ -16,22 +16,27 @@
     - [x99       @ client/rustdesk_self-host](#x99___client_rustdesk_self_hos_t_)
 - [docker](#docke_r_)
   - [nvidia-container-toolkit       @ docker](#nvidia_container_toolkit___docker_)
-- [install nvidia drivers](#install_nvidia_driver_s_)
-  - [418_for_cuda_10.1       @ install_nvidia_drivers](#418_for_cuda_10_1___install_nvidia_drivers_)
-  - [410_for_cuda_10.0       @ install_nvidia_drivers](#410_for_cuda_10_0___install_nvidia_drivers_)
-  - [396_for_cuda_9       @ install_nvidia_drivers](#396_for_cuda_9___install_nvidia_drivers_)
-  - [20.04       @ install_nvidia_drivers](#20_04___install_nvidia_drivers_)
-    - [470_for_cuda_11       @ 20.04/install_nvidia_drivers](#470_for_cuda_11___20_04_install_nvidia_drivers_)
-    - [others       @ 20.04/install_nvidia_drivers](#others___20_04_install_nvidia_drivers_)
+- [nvidia drivers](#nvidia_driver_s_)
+  - [remove_noveau       @ nvidia_drivers](#remove_noveau___nvidia_drivers_)
+  - [debian       @ nvidia_drivers](#debian___nvidia_drivers_)
+    - [cuda-12.5       @ debian/nvidia_drivers](#cuda_12_5___debian_nvidia_driver_s_)
+      - [cudnn       @ cuda-12.5/debian/nvidia_drivers](#cudnn___cuda_12_5_debian_nvidia_driver_s_)
+  - [ubuntu       @ nvidia_drivers](#ubuntu___nvidia_drivers_)
+      - [418_for_cuda_10.1       @ ubuntu/nvidia_drivers](#418_for_cuda_10_1___ubuntu_nvidia_driver_s_)
+      - [410_for_cuda_10.0       @ ubuntu/nvidia_drivers](#410_for_cuda_10_0___ubuntu_nvidia_driver_s_)
+      - [396_for_cuda_9       @ ubuntu/nvidia_drivers](#396_for_cuda_9___ubuntu_nvidia_driver_s_)
+      - [20.04       @ ubuntu/nvidia_drivers](#20_04___ubuntu_nvidia_driver_s_)
+      - [470_for_cuda_11       @ ubuntu/nvidia_drivers](#470_for_cuda_11___ubuntu_nvidia_driver_s_)
+      - [others       @ ubuntu/nvidia_drivers](#others___ubuntu_nvidia_driver_s_)
 - [cuda](#cud_a_)
   - [bugs       @ cuda](#bugs___cuda_)
   - [CUDA_12.2:       @ cuda](#cuda_12_2____cuda_)
   - [cuda-12.3       @ cuda](#cuda_12_3___cuda_)
-    - [cuda-13.1       @ cuda-12.3/cuda](#cuda_13_1___cuda_12_3_cuda_)
+  - [cuda-13.1       @ cuda](#cuda_13_1___cuda_)
   - [24.04       @ cuda](#24_04___cuda_)
-    - [all       @ 24.04/cuda](#all___24_04_cuda_)
-      - [12.2       @ all/24.04/cuda](#12_2___all_24_04_cuda_)
-      - [12.3       @ all/24.04/cuda](#12_3___all_24_04_cuda_)
+  - [cudnn       @ cuda](#cudnn___cuda_)
+    - [12.2       @ cudnn/cuda](#12_2___cudnn_cuda_)
+    - [12.3       @ cudnn/cuda](#12_3___cudnn_cuda_)
   - [cudnn-deb       @ cuda](#cudnn_deb___cuda_)
 - [disks](#disks_)
 - [tmux](#tmu_x_)
@@ -294,10 +299,11 @@ sudo apt-get install -y nvidia-container-toolkit
 ```
 
 
-<a id="install_nvidia_driver_s_"></a>
-# install nvidia drivers
+<a id="nvidia_driver_s_"></a>
+# nvidia drivers
+<a id="remove_noveau___nvidia_drivers_"></a>
+## remove_noveau       @ nvidia_drivers-->install
 **DO NOT RESTART OR LOGOUT BEFORE noveau HAS BEEN REMOVED AND BLACKLISTED OR YOU WON'T BE ABLE TO LOG BACK IN (OR EVEN ACCESS TERMINAL) in 18.04.**
-
 1. uninstall noveau drivers:
 ```
 sudo apt-get remove --purge '^nvidia-.*'
@@ -340,45 +346,77 @@ sudo shutdown -r now
 
 sudo shutdown now
 ```
+<a id="debian___nvidia_drivers_"></a>
+## debian       @ nvidia_drivers-->install
+https://wiki.debian.org/NvidiaGraphicsDrivers
+```
+apt install nvidia-kernel-dkms nvidia-driver
+```
+<a id="cuda_12_5___debian_nvidia_driver_s_"></a>
+### cuda-12.5       @ debian/nvidia_drivers-->install
+https://developer.nvidia.com/cuda-12-5-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Debian&target_version=12&target_type=deb_local
 
-3. install nvidia drivers:
+https://medium.com/codex/install-nvidia-drivers-cuda-on-debian-12-bookworm-nvidia-smi-69d2980247c6
+
+
+```
+wget https://developer.download.nvidia.com/compute/cuda/12.5.0/local_installers/cuda-repo-debian12-12-5-local_12.5.0-555.42.02-1_amd64.deb
+sudo dpkg -i cuda-repo-debian12-12-5-local_12.5.0-555.42.02-1_amd64.deb
+sudo cp /var/cuda-repo-debian12-12-5-local/cuda-*-keyring.gpg /usr/share/keyrings/
+sudo add-apt-repository contrib
+sudo apt-get update
+sudo apt-get -y install cuda-toolkit-12-5
+sudo apt-get install -y cuda-drivers
+```
+<a id="cudnn___cuda_12_5_debian_nvidia_driver_s_"></a>
+#### cudnn       @ cuda-12.5/debian/nvidia_drivers-->install
+https://developer.nvidia.com/cudnn-downloads?target_os=Linux&target_arch=x86_64&Distribution=Debian&target_version=12&target_type=deb_local&Configuration=Full
+
+```
+wget https://developer.download.nvidia.com/compute/cudnn/9.23.0/local_installers/cudnn-local-repo-debian12-9.23.0_1.0-1_amd64.deb
+sudo dpkg -i cudnn-local-repo-debian12-9.23.0_1.0-1_amd64.deb
+sudo cp /var/cudnn-local-repo-debian12-9.23.0/cudnn-*-keyring.gpg /usr/share/keyrings/
+sudo apt-get update
+sudo apt-get -y install cudnn9-cuda-12
+```
+
+<a id="ubuntu___nvidia_drivers_"></a>
+## ubuntu       @ nvidia_drivers-->install
 __new system : might be better to directly install cuda which also installs driver__
-
-
 ```
 sudo add-apt-repository ppa:graphics-drivers
 sudo apt-get update 
 ubuntu-drivers devices
 ```
 
-<a id="418_for_cuda_10_1___install_nvidia_drivers_"></a>
-## 418_for_cuda_10.1       @ install_nvidia_drivers-->install
+<a id="418_for_cuda_10_1___ubuntu_nvidia_driver_s_"></a>
+#### 418_for_cuda_10.1       @ ubuntu/nvidia_drivers-->install
 ```
 sudo apt-get install nvidia-418
 ```
-<a id="410_for_cuda_10_0___install_nvidia_drivers_"></a>
-## 410_for_cuda_10.0       @ install_nvidia_drivers-->install
+<a id="410_for_cuda_10_0___ubuntu_nvidia_driver_s_"></a>
+#### 410_for_cuda_10.0       @ ubuntu/nvidia_drivers-->install
 
 ```
 sudo apt-get install nvidia-410
 ```
 
-<a id="396_for_cuda_9___install_nvidia_drivers_"></a>
-## 396_for_cuda_9       @ install_nvidia_drivers-->install
+<a id="396_for_cuda_9___ubuntu_nvidia_driver_s_"></a>
+#### 396_for_cuda_9       @ ubuntu/nvidia_drivers-->install
 ```
 sudo apt-get install nvidia-396
 ```
 
-<a id="20_04___install_nvidia_drivers_"></a>
-## 20.04       @ install_nvidia_drivers-->install
+<a id="20_04___ubuntu_nvidia_driver_s_"></a>
+#### 20.04       @ ubuntu/nvidia_drivers-->install
 
-<a id="470_for_cuda_11___20_04_install_nvidia_drivers_"></a>
-### 470_for_cuda_11       @ 20.04/install_nvidia_drivers-->install
+<a id="470_for_cuda_11___ubuntu_nvidia_driver_s_"></a>
+#### 470_for_cuda_11       @ ubuntu/nvidia_drivers-->install
 ```
 sudo apt install nvidia-driver-470
 ```
-<a id="others___20_04_install_nvidia_drivers_"></a>
-### others       @ 20.04/install_nvidia_drivers-->install
+<a id="others___ubuntu_nvidia_driver_s_"></a>
+#### others       @ ubuntu/nvidia_drivers-->install
 ```
 sudo apt install nvidia-driver-510
 sudo apt install nvidia-driver-515
@@ -449,8 +487,8 @@ export LD_LIBRARY_PATH=/usr/local/cuda-12.3/targets/x86_64-linux/lib:$LD_LIBRARY
 export PATH=$PATH:/usr/local/cuda-12.3/bin
 export XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/local/cuda-12.3
 ```
-<a id="cuda_13_1___cuda_12_3_cuda_"></a>
-### cuda-13.1       @ cuda-12.3/cuda-->install
+<a id="cuda_13_1___cuda_"></a>
+## cuda-13.1       @ cuda-->install
 `for ubuntu 24.04 / mint 22.3`
 https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=24.04&target_type=deb_local
 ```
@@ -477,8 +515,8 @@ sudo nano /etc/apt/sources.list
 deb http://old-releases.ubuntu.com/ubuntu/ lunar universe
 sudo apt update
 
-<a id="all___24_04_cuda_"></a>
-### all       @ 24.04/cuda-->install
+<a id="cudnn___cuda_"></a>
+## cudnn       @ cuda-->install
 download cudnn tar from
 https://developer.nvidia.com/rdp/cudnn-download
 ```
@@ -488,14 +526,14 @@ and extract into cuda/targets/ folder
 ```
 tar xvf cudnn-linux-x86_64-8.9.7.29_cuda12-archive.tar.xz
 ```
-<a id="12_2___all_24_04_cuda_"></a>
-#### 12.2       @ all/24.04/cuda-->install
+<a id="12_2___cudnn_cuda_"></a>
+### 12.2       @ cudnn/cuda-->install
 ```
 sudo mv cudnn-linux-x86_64-8.9.7.29_cuda12-archive/lib/* /usr/local/cuda-12.2/targets/x86_64-linux/lib/
 sudo mv cudnn-linux-x86_64-8.9.7.29_cuda12-archive/include/* /usr/local/cuda-12.2/targets/x86_64-linux/include/
 ```
-<a id="12_3___all_24_04_cuda_"></a>
-#### 12.3       @ all/24.04/cuda-->install
+<a id="12_3___cudnn_cuda_"></a>
+### 12.3       @ cudnn/cuda-->install
 ```
 sudo mv cudnn-linux-x86_64-8.9.7.29_cuda12-archive/lib/* /usr/local/cuda-12.3/targets/x86_64-linux/lib/
 sudo mv cudnn-linux-x86_64-8.9.7.29_cuda12-archive/include/* /usr/local/cuda-12.3/targets/x86_64-linux/include/
@@ -594,7 +632,7 @@ python3.11 get-pip.py
 python3.12 get-pip.py
 /usr/bin/python3 get-pip.py
 
-python -m pip install --upgrade pip
+python3.10 -m pip install --upgrade pip
 ```
 
 <a id="setup_python_3_"></a>
